@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
-require git; require npm; require node; require bun; require docker; require openssl; require tmux; require ss
+require git; require npm; require node; require bun; require docker; require openssl; require tmux; require ss; require uv
 docker info >/dev/null
 if existing "$DB_NAME" && [[ ! -f "$DEMO_RUNTIME_ROOT/credentials/postgres.env" || ! -f "$QM_DEV_ENV" ]]; then
   echo 'Existing PostgreSQL has no private env pair; run scripts/adopt-live before install' >&2; exit 1
@@ -21,6 +21,8 @@ fi
 (cd "$QM_SOURCE" && npm ci && npm --prefix plugins/web-ui ci && npm run build:connector-sdk && npm --prefix plugins/web-ui run build)
 (cd "$QM_SOURCE" && npm run sandbox:local:build)
 (cd "$GBRAIN_SOURCE" && GBRAIN_NO_AUTOPILOT_INSTALL=1 bun install --frozen-lockfile --ignore-scripts)
+uv venv --python 3.13 "$DEMO_RUNTIME_ROOT/../tools/typesafe-sdk"
+uv pip install --python "$DEMO_RUNTIME_ROOT/../tools/typesafe-sdk/bin/python" --require-hashes -r "$REPO_ROOT/jev/requirements.txt"
 mkdir -p "$CLAW_PACKAGE"
 cp "$REPO_ROOT/openclaw/package.json" "$REPO_ROOT/openclaw/package-lock.json" "$CLAW_PACKAGE/"
 npm --prefix "$CLAW_PACKAGE" ci --omit=dev

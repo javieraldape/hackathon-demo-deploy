@@ -15,6 +15,10 @@
 !/scripts/lockdown
 !/scripts/prepare-openclaw
 !/scripts/preview-gate
+!/jev/
+!/jev/requirements.in
+!/jev/requirements.txt
+!/jev/smoke.py
 !/templates/
 !/templates/qm.env.example
 !/templates/postgres.env.example
