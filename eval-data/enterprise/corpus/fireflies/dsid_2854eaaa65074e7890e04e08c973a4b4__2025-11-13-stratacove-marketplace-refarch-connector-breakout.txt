@@ -1,0 +1,81 @@
+Stratacove Marketplace + RefArch Connector Breakout
+
+Technical breakout to align on Stratacove's marketplace listing requirements, VPC/onprem connector design, KMS and audit log needs, and quantization/latency tradeoffs for the joint reference architecture. Agreed next steps include an architecture diagram, a small benchmark plan, and a security artifacts packet.
+Marketplace listing packaging and helm chart requirements
+VPC peering / connector topology for private deployments
+KMS/HSM and key lifecycle expectations
+Telemetry, audit logs, and SOC2 artifacts
+Quantization tradeoffs (int8 vs fp16) and perf targets
+Canary/rollout strategy and autoscaling knobs
+[00:00] Maya: ok, thanks everyone for joining, this is the Stratacove ‑ Redwood breakout, we're gonna focus on the marketplace packaging and the private connector topology. Uh, Liam and Priya from our side, they will run through the refarch and some perf tradeoffs.
+[00:18] Derek: thanks Maya. we got Amira and Carlos here, and Jing. main goal is to get a clear playbook so our engineering teams can onboard the connector into our helm charts and meet the listing gates. timeline is roughly end of Q1 for pilot.
+[00:32] Liam: cool, i'll share my screen in a sec, but quick qual — what's your expected traffic shape? is this inference at scale or more low‑latency bursts?
+[00:44] Amira: it's mostly low latency with spikes; some customer facing features need <150ms p95, others can tolerate higher. We also have strict data residency and KMS rules.
+[00:55] Priya: got it. so we need to talk about pinning model versions, routing, and KMS integration. Also the connector landing in your private VPC versus a marketplace onprem package, little differences there.
+[01:09] Carlos: security first — we need SSO, SAML, RBAC mapping to our OPA policies, plus audit logs pushed to Splunk. Is there an audit stream?
+[01:22] Maya: yes we have audit logs and token level tracing in Console, can stream to syslog or S3, and we support webhook hooks. we'll add a note about Splunk forwarding.
+[01:30] Jing: quick question — if we run the private deployment, do keys ever leave our KMS? we need clar‑, we need to understand key handling for HSM.
+[01:41] Priya: keys are customer‑managed, we can support external KMS or HSM like Azure Key Vault, AWS KMS, or onprem HSM via PKCS11. Redwood never persists plaintext keys. there was a doclink in the deck, i'll paste afterwards.
+[01:56] Liam: ok screen — (brief pause) so here's a sketch: marketplace package is a helm chart that wraps the private connector, an operator, and a small sidecar for telemetry. The connector speaks gRPC to the runtime; runtime can be deployed in your cluster or we can host a dedicated pool.
+[02:20] Derek: for compliance we prefer everything inside our VPC. what's the peering model? direct peering or NAT egress?
+[02:32] Priya: two patterns we see: 1) Full in‑cluster: helm + runtime images run in your cluster; no outbound peering required beyond package updates. 2) Connector pattern: lightweight connector in your VPC that tunnels requests to Redwood dedicated inference pool over mutual TLS + mTLS. The latter is easier for upgrades but requires controlled egress.
+[02:55] Amira: can we do a hybrid, like local KV cache for prompts and route large gen to dedicated?
+[03:04] Liam: yep, hybrid routing is supported — prefix cache sits in the connector sidecar and we can route long running batch to dedicated instances. note: prefix cache is sometimes transcribed as K-V cash in older notes (laughs).
+[03:20] Carlos: lattice of requirements — encryption at rest for cache, audit of prefix evictions, is that achievable?
+[03:28] Priya: yes encryption at rest for cache uses the same KMS policy; evictions are logged. we'll show the sample log schema.
+[03:36] (00:04:10) Maya: there's a short security checklist for marketplace listing: SSO, RBAC, SOC2 attestation, vulnerability scan report, and helm chart vulnerability policy.
+[03:50] Derek: ok, about quantization — team wants to run int8 to save cost but worried about hallucinations on some prompts. can you guide?
+[04:02] Liam: absolutely. int8 offers 2–3x cost reduction on some backends, fp16 has better fidelity for sensitive prompts. We recommend running a small eval set; Redwood Optimize can suggest quant profiles. For generation latency tradeoffs, int8 often reduces latency by ~15–25% on our infra.
+[04:25] Amira: what's the expected delta p95 if we move to int8 for 8k context models?
+[04:32] Priya: depends on kernel selection; for 8k models we see variance. For Stratacove's 2–3 token per request median, p95 might increase slightly if not using proper KV cache. We'll need to run the benchmark.
+[04:48] Carlos: benchmarks — can we run them in our environment? we want to see the matrix: latency, memory, cost, and quality.
+[04:55] Maya: yes, we'll propose a bench plan. Next step: Redwood SE will ship a lightweight harness (k6 + scripted prompts) to run in your cluster with two model variants.
+[05:06] Jing: on private deployments, what about autoscaling? we can't afford to spin GPUs at full cost, need predictability.
+[05:13] Liam: Dedicated pools support reserved capacity and burst; for private (onprem) you control node autoscaler. We provide recommended HPA configs and a batching profile that reduces token billing.
+[05:26] Derek: can you explain batching profile? is that client side or runtime?
+[05:31] Priya: mostly runtime. continuous batching aggregates concurrent requests; connector sidecar exposes a small local queue. We tune latency SLO vs throughput to meet p95 requirements.
+[05:42] (00:06:00) Derek: legal/procurement will want the listing contract language. Who owns liability for model outputs?
+[05:49] Maya: for marketplace we have standard indemnity clauses but we'll mark any custom requirements. We'll loop legal if needed.
+[05:57] Amira: okay, about listing metadata — we need icons, screenshots, short description, and sizing notes. Anything special for helm values?
+[06:06] Liam: helm values file needs resource limits for runtime; we provide charts with placeholders. We'll provide a sample values.yaml for your infra patterns.
+[06:16] Carlos: telemetry — how fine grained can we get? token level cost is great but we need per-tenant masks and PII redaction.
+[06:26] Priya: we mask PII by default in traces, and you can add redaction rules. For per-tenant telemetry we emit tenant tags and support sampling. We'll include the telemetry schema link.
+[06:38] Maya: (shares link) https://redwood.example.com/marketplace/stratacove‑refarch (note: link is placeholder).
+[06:45] Derek: good. about the connector lifecycle — how are upgrades handled?
+[06:51] Liam: upgrades via helm operator; we support canary and automatic rollback. For runtime changes we recommend canary routing at 5–10% traffic then ramp.
+[07:03] Amira: can the chart install a CRD for routing policies?
+[07:07] Priya: yes, we ship a minimal CRD for rollout policies and a sample OPA policy to integrate with your gate.
+[07:17] Carlos: SAML/SSO integration — does the operator need service account mapping?
+[07:22] Maya: we map SAML groups to RBAC roles. There's a mapping table we'll share.
+[07:28] Jing: small nit — do you support private airgapped updates? for some regulated customers we need offline image loading.
+[07:36] Liam: yes, we provide an offline artifact bundle and signed manifests. chart supports imagePullPolicy=IfNotPresent and an index for offline registries.
+[07:46] (00:08:00) Derek: ok let's talk KMS again — lifecycle rotation. we need to rotate keys quarterly and ensure no service outage.
+[07:55] Priya: rotations are seamless if using envelope encryption; we recommend a key version check during start and concurrency for rewrap. We'll send a rotation guidance doc.
+[08:05] Carlos: you mention audit logs to S3; can we enforce immutability/retention?
+[08:11] Maya: yes, retention controls are set on the bucket side. We also support write‑once policies and versioned logs.
+[08:19] Amira: any blockers for marketplace listing tests? vulnerability scans?
+[08:24] Liam: we need your CI to run the SBOM and the container scan; Redwood can run an additional image scan but listing requires customer attestation.
+[08:35] Derek: great. about pricing — is there a dedicated seat or marketplace billing?
+[08:41] Maya: there's marketplace billing for the connector package plus either usage billing for hosted inference or reserved pricing for dedicated. We'll share a pricing matrix.
+[08:50] Priya: quick flag — if you plan to use very long contexts we recommend a model variant with kv cache tuning; we'll show how to set max_context and chunking.
+[08:59] (00:09:30) Amira: can you show a sample values.yaml?
+[09:04] Liam: sure, i'll paste a snippet in the notes after the call. it includes resources, KMS endpoint, telemetry endpoint, and rollout knobs.
+[09:15] Carlos: one more on privacy — is there a mode to keep token logs ephemeral for X days?
+[09:21] Priya: yes configurable retention per route; default 30 days but can be set to 0 for ephemeral.
+[09:29] Derek: ok, next steps and owners?
+[09:33] Maya: i'll recap: 1) Redwood to send architecture diagram + sample values.yaml + bench harness (Liam). 2) Stratacove to provide VPC diagram and compliance checklist (Derek). 3) Redwood SE to prepare security packet (Priya & Maya). 4) Run pilot bench next week if possible.
+[09:50] Jing: one more thing — can we get a short runbook for incidents? we want SLOs and runbook entries.
+[09:57] Priya: yes runbook template included in the patrol docs. we'll attach.
+[10:04] Maya: awesome. anything else?
+[10:08] Amira: no, thanks — good session.
+[10:11] Derek: thanks, talk soon.
+[10:14] Maya: thanks everyone, end.
+
+Redwood to send architecture diagram, sample values.yaml, and bench harness (owner: Liam) — target 2025-11-20
+Stratacove to share VPC peering diagram and internal compliance checklist (owner: Derek) — target 2025-11-19
+Redwood to assemble security packet (SOC2 attestation, SBOM, container scan) (owner: Priya) — target 2025-11-21
+Schedule pilot benchmark run in Stratacove cluster and review results (owner: Maya & Jing) — target 2025-11-25
+Liam O'Neill | produce bench harness + sample values.yaml | 2025-11-20
+Derek Holt | provide VPC diagram + listing CI checklist | 2025-11-19
+Priya Rao | compile security artifacts packet (SOC2, SBOM, scans) | 2025-11-21
+Jing Wei | provision test namespace and run initial smoke tests | 2025-11-22

@@ -1,0 +1,322 @@
+Marketplace security review - Redwood Inference x Helio Finance
+
+Fireflies.ai - Call Transcript
+
+Title: Marketplace security review - Redwood Inference x Helio Finance
+Date: 2026-02-03
+Start time: 18:00 UTC
+Duration: 52 minutes
+
+Attendees
+- Stephanie Nguyen (Redwood, AE)
+- Markus Klein (Redwood, Solutions Engineering)
+- Naomi Feldman (Redwood, Security/Compliance PM)
+- Olga Petrov (Redwood, GRC)
+- Priya Desai (Helio Finance, Security Engineering)
+- Tom Gallagher (Helio Finance, GRC/Compliance)
+- Mina Cho (Helio Finance, Procurement)
+- Evan Brooks (Helio Finance, Platform Engineering)
+
+Auto-summary (generated)
+- Helio is evaluating Redwood for LLM inference purchased via AWS Marketplace; key concerns are SOC 2 posture, encryption/key management, audit logging, data retention, and region/residency.
+- Redwood reviewed SOC 2 Type II availability (NDA-gated), security packet structure, encryption in transit/at rest, KMS integration options by deployment mode, and audit logs + retention controls.
+- Open questions remain on customer-managed keys for Dedicated vs Private deployment and exact default retention settings for request/response payloads vs metadata.
+
+Topics
+1) Helio context + procurement path (AWS Marketplace)
+2) SOC 2 / ISO alignment and evidence-sharing process
+3) Data handling: prompts/outputs, logs, retention, residency
+4) Encryption: TLS, at-rest, KMS/CMK options
+5) Audit logging: what is logged, retention, export to SIEM
+6) Next steps + questionnaire mapping
+
+Action items (call recap)
+- Redwood to provide SOC 2 report access instructions and link to marketplace security packet.
+- Redwood to send audit log event list + export options and confirm retention defaults.
+- Helio to send security questionnaire and confirm marketplace/private offer requirements.
+
+Transcript
+
+[00:00] Stephanie Nguyen: Hey everyone, thanks for joining. Um, today’s mainly a security review for the marketplace path. We’ve got Naomi and Olga from our security and GRC side, Markus from solutions. Priya, Tom, Mina, Evan—thanks for making the time.
+
+[00:18] Priya Desai: Yep, thanks. We’re trying to unblock procurement. We have a pretty standard questionnaire, but marketplace reviewers also ask for like, the packet, SOC report, data retention, encryption and key management. So, we want to make sure we’re not surprised later.
+
+[00:34] Mina Cho: And specifically, we need to buy through AWS Marketplace if possible. Sometimes we do a private offer, sometimes public listing is okay.
+
+[00:43] Markus Klein: Got it. We can cover both. The offering is basically the same tech, but the commercial wrapper changes.
+
+[00:49] Stephanie Nguyen: Quick agenda: 5 minutes on your intended usage, then we’ll go through SOC posture, audit logs, retention, KMS. We’ll end with action items and what we’ll send.
+
+[01:05] Tom Gallagher: Sounds good.
+
+[01:07] Stephanie Nguyen: Priya, can you give us the one-minute, like, what you’re building and what’s the “red line” for security?
+
+[01:14] Priya Desai: Sure. We’re a fintech. We’re looking at running a set of customer support and doc summarization workflows. Some of it is internal, some could touch customer data. We need to ensure prompts/outputs aren’t retained beyond processing, unless we explicitly opt-in, and we need strong audit logging, SSO, RBAC. Also encryption—ideally customer-managed keys, at least for anything at rest.
+
+[01:41] Evan Brooks: And on the platform side, we’d likely start with hosted API to move fast, but we might need a dedicated pool if latency is spiky or if we need isolation. Private/VPC is not off the table, but that’s heavier.
+
+[01:56] Naomi Feldman: That helps. We’ll talk about how those requirements map to Hosted vs Dedicated vs Private.
+
+[02:04] Stephanie Nguyen: Great. Olga, do you want to start with compliance posture and what we can share?
+
+[02:09] Olga Petrov: Yep. So Redwood maintains a SOC 2 Type II report. We also have an internal control mapping that aligns to ISO 27001-style control families—access control, change management, vendor risk, incident response, etc.
+
+[02:24] Tom Gallagher: When you say “aligns,” you’re not claiming certified ISO 27001, right? Just mapping.
+
+[02:29] Olga Petrov: Correct, mapping and alignment. We are not representing ISO certification on this call. For SOC 2: we can share the full report through our secure portal once an NDA is in place. If your marketplace reviewer needs a bridge letter depending on timing, we can provide that too.
+
+[02:47] Priya Desai: Okay. And scope—does it cover the hosted service?
+
+[02:51] Olga Petrov: Yes, the in-scope systems include the hosted inference service and the supporting control plane components. If you do Private deployment, there’s shared responsibility—some controls move to your environment. We’ll share that matrix.
+
+[03:08] Markus Klein: We also have a marketplace-focused security overview doc—kind of a packet—so you don’t have to dig through random pages.
+
+[03:16] Mina Cho: That’s the one AWS asks for sometimes, right? Like “data flow diagram,” “encryption,” “audit logs.”
+
+[03:22] Naomi Feldman: Exactly. We have a security documentation bundle for marketplace review. It includes: high-level architecture, data flow, encryption, retention, audit logging, and shared responsibility.
+
+[03:35] Stephanie Nguyen: Cool. Let’s go into data handling and retention because that’s usually the hot one.
+
+[03:41] Naomi Feldman: Yep. So for the hosted API: prompts and model outputs are processed to generate a response. By default, we’re not using customer content to train models. Content isn’t shared across tenants. We do retain certain operational metadata for observability—latency, token counts, error codes.
+
+[04:02] Priya Desai: Do you store the raw prompts or completions?
+
+[04:05] Naomi Feldman: It depends on configuration and what logging is enabled. Generally, we minimize retention of payload content. In some cases, customers opt in to store request/response samples for debugging or evaluations, and we can also set retention windows. For regulated customers, the default we recommend is payload logging off, and only metadata retained.
+
+[04:30] Evan Brooks: Is “payload logging off” something we can enforce org-wide?
+
+[04:33] Naomi Feldman: Yes, you can enforce at the org level via policy in the console, and we can confirm that in writing. We also have redaction options for certain fields if you do log.
+
+[04:46] Tom Gallagher: What’s the default retention for metadata?
+
+[04:50] Naomi Feldman: For operational metrics, typical retention is on the order of weeks to support troubleshooting and billing reconciliation. For audit logs, it’s longer—months—because enterprises need that. I want to be careful with exact numbers on the call; we’ll send the current defaults and the configurable ranges after I double-check the latest marketplace settings.
+
+[05:14] Priya Desai: Please do. AWS reviewers will ask “how many days,” very literally.
+
+[05:19] Naomi Feldman: Understood.
+
+[05:21] Markus Klein: Also, if you go Dedicated or Private, the retention story changes because you can keep more in your environment or restrict what’s stored in our control plane.
+
+[05:31] Stephanie Nguyen: Residency next. Evan mentioned US vs maybe EU. What do you need?
+
+[05:38] Mina Cho: We’re primarily US, but we have a small EU footprint. We don’t want data unexpectedly processed outside the region.
+
+[05:47] Naomi Feldman: For hosted, you select the region endpoint. Requests are processed in that region. We’ll provide the list of supported regions for marketplace buyers and what data stays in-region versus what’s global in the control plane (for example, account-level billing records).
+
+[06:10] Priya Desai: So the prompt and response stay in the region endpoint? Not bouncing around?
+
+[06:14] Markus Klein: Correct, the inference happens where you send it. There are edge cases like failover if you explicitly enable cross-region fallback. But that’s a policy you control. Default is no cross-region.
+
+[06:29] Priya Desai: Okay, that’s good.
+
+[06:32] Stephanie Nguyen: Encryption. Markus, want to tee it up, and Naomi can fill in KMS details?
+
+[06:38] Markus Klein: Sure. In transit: TLS. At rest: data stored in our systems is encrypted. The question usually becomes: do you need customer-managed keys.
+
+[06:49] Priya Desai: Yes. Ideally CMK. We’re fine if hosted is Redwood-managed KMS at first, but we need to know the roadmap and options.
+
+[06:58] Naomi Feldman: Right. So for Hosted API, encryption at rest uses cloud KMS under our management. For Dedicated and Private we have stronger options. In Private, because it’s in your VPC or on-prem, you can use your own KMS/HSM and key policies. For Dedicated, there are options for customer-managed keys depending on the exact deployment model and cloud account structure. I don’t want to overpromise—so we’ll follow up with the definitive “supported today” and “supported with Private” statement.
+
+[07:30] Tom Gallagher: We need that spelled out. “Possible” doesn’t work for auditors.
+
+[07:33] Naomi Feldman: Totally fair.
+
+[07:36] Evan Brooks: For hosted, is there any at-rest storage of payload content where the key management matters? If payload logging is off, then it’s mostly metadata anyway.
+
+[07:46] Naomi Feldman: Exactly. Key management is still relevant for the metadata, audit logs, and any configuration artifacts, but the sensitivity is lower if payloads aren’t stored.
+
+[08:00] Priya Desai: How about secrets? API keys? Are those encrypted at rest with KMS as well?
+
+[08:05] Markus Klein: Yes. API keys and tokens are stored in an encrypted secrets store. Access is restricted and audited.
+
+[08:12] Olga Petrov: And access to production systems is controlled with least privilege and logged. That’s in the SOC report.
+
+[08:20] Priya Desai: Okay.
+
+[08:22] Stephanie Nguyen: Let’s do audit logging. Priya, what do you need to see? API calls? Admin actions?
+
+[08:28] Priya Desai: Admin actions for sure—org creation, user invites, role changes, API key creation, model changes. Also if there’s any change in retention settings, that needs to be in the audit log. And ideally the ability to export to our SIEM.
+
+[08:46] Naomi Feldman: Yes. We log administrative events in the console and control plane. Typical events: user auth events, SSO changes, role and permission changes, API key create/revoke, workspace/org settings changes, retention policy changes, and deployment/rollout events for models if you’re using those features.
+
+[09:09] Markus Klein: For export: we support pulling audit logs via API and exporting to object storage, and we’ve had customers forward into Splunk. We can share a “how to” and the event taxonomy.
+
+[09:24] Priya Desai: Is the audit log immutable?
+
+[09:27] Naomi Feldman: You can’t edit audit events. Internally we treat it as append-only. For higher assurance, we recommend exporting to your SIEM where you apply your own immutability controls.
+
+[09:39] Tom Gallagher: Retention for audit logs?
+
+[09:41] Naomi Feldman: There’s a default retention and an enterprise option for longer retention. Again, I’ll send the exact days. We don’t want to quote wrong and then have to correct later.
+
+[09:56] Tom Gallagher: Appreciate that.
+
+[10:00] Mina Cho: Does any of this differ because it’s AWS Marketplace? Like, do we get a different tenant or something?
+
+[10:06] Stephanie Nguyen: Commercially it’s billed via marketplace, but it’s still a Redwood org. The key difference is the onboarding flow: subscription → entitlement → org provisioning. Markus, you want to mention entitlement logs?
+
+[10:18] Markus Klein: Sure. Marketplace entitlements are validated via our entitlement verification endpoints. Those checks are logged on our side. If there’s a provisioning delay, we can trace it.
+
+[10:30] Evan Brooks: Provisioning delay is something we’ve seen with other marketplace stuff. How long does it typically take?
+
+[10:36] Markus Klein: Usually minutes. Sometimes there’s propagation delay on the marketplace side. We’ve added retries and alerting. If it’s more than, say, 30-60 minutes, we treat it as an issue and can escalate.
+
+[10:54] Priya Desai: Okay. Not security, but good to know.
+
+[10:58] Stephanie Nguyen: Back to the security packet. Olga, can you explain how we share evidence without emailing PDFs around?
+
+[11:05] Olga Petrov: Yeah. We provide a gated evidence index: SOC 2 report, pen test attestation letters if applicable, policy summaries. We do not email the full SOC report. You get access through a secure portal with named users. For marketplace reviewers, we can also provide a “customer-facing security overview” that’s public-ish and doesn’t contain sensitive internals.
+
+[11:28] Tom Gallagher: That works.
+
+[11:30] Priya Desai: Pen test—do you do regular pentesting?
+
+[11:34] Olga Petrov: We run ongoing vulnerability management and periodic third-party penetration testing. Details and dates are in the evidence pack; we’ll share the attestation letter, not raw findings.
+
+[11:48] Priya Desai: Okay.
+
+[11:50] Evan Brooks: What about SSO? We need SAML.
+
+[11:54] Markus Klein: Yes, SSO/SAML is supported for enterprise plans. You can enforce it and block password login. We also have RBAC.
+
+[12:05] Priya Desai: Is MFA required for console?
+
+[12:08] Naomi Feldman: We support MFA and you can enforce it, plus SSO with your IdP typically meets your MFA policy anyway.
+
+[12:16] Tom Gallagher: Incident response—do you have an SLA for notifying us?
+
+[12:20] Olga Petrov: Our incident response policy includes customer notification timelines based on severity and contractual terms. The SOC report covers our IR process. For Dedicated/Private, contract language can specify.
+
+[12:36] Priya Desai: Okay.
+
+[12:38] Stephanie Nguyen: I’m going to scroll us to the really specific questions AWS sometimes asks. Priya/Tom, anything you know is coming?
+
+[12:46] Priya Desai: They ask: encryption in transit version (TLS 1.2+), encryption at rest, KMS, audit logs, retention, data deletion, subcontractors.
+
+[12:56] Naomi Feldman: We can cover deletion. For hosted: you can delete API keys and users. For data: if payload logging is disabled, there isn’t payload content persisted to delete, aside from transient processing. If you have payload logging enabled, deletion requests can remove stored samples, and retention policies ensure expiry.
+
+[13:19] Tom Gallagher: Subprocessors list—can you provide?
+
+[13:22] Olga Petrov: Yes, we have a subprocessors list as part of our trust documentation. We’ll provide it.
+
+[13:30] Evan Brooks: One thing: do you use our data to fine-tune or train any models?
+
+[13:35] Markus Klein: No, not by default. We don’t train foundation models on customer prompts/outputs. Any opt-in eval or logging is for your own monitoring/debugging.
+
+[13:49] Priya Desai: Okay.
+
+[13:51] (crosstalk)
+
+[13:52] Mina Cho: And contractually, is that in your terms?
+
+[13:56] Stephanie Nguyen: Yes, it’s in the data use terms. For marketplace, there are AWS terms plus our EULA/SSA depending on offer type. We can point you to the exact clause.
+
+[14:10] Tom Gallagher: I want to circle back to customer-managed keys. For a fintech, we often require CMK for any system storing sensitive data.
+
+[14:18] Naomi Feldman: Understood. The honest answer is: CMK is straightforward in Private deployment because it’s your environment, your KMS. For Hosted, it’s Redwood-managed keys. For Dedicated, it depends on how dedicated is provisioned—single-tenant cluster but still Redwood-managed cloud account vs customer account. We have patterns for both. We’ll confirm which ones are available in the marketplace SKU you’re considering.
+
+[14:47] Priya Desai: If we start hosted, can we migrate to Dedicated/Private later without changing API?
+
+[14:52] Markus Klein: Yes, the API surface is consistent. There can be endpoint differences and networking changes, but your application code is basically the same.
+
+[15:04] Evan Brooks: Good.
+
+[15:06] Stephanie Nguyen: Let’s capture what we need to send after the call so you can check the boxes. Priya, do you have a questionnaire we can respond to?
+
+[15:14] Priya Desai: Yes, I can send our standard spreadsheet. It’s like 150 questions.
+
+[15:19] Markus Klein: Love those.
+
+[15:21] Priya Desai: Sorry.
+
+[15:23] Markus Klein: No, all good.
+
+[15:24] Tom Gallagher: Also AWS has their own “security review” template sometimes.
+
+[15:29] Stephanie Nguyen: Yep. We’ve been through those. We’ll respond with citations to our packet.
+
+[15:35] Naomi Feldman: One more thing: audit log event list. We’ll provide a list of events and fields (timestamp, actor, IP, action, resource, result). That’s typically what auditors want.
+
+[15:51] Priya Desai: Perfect.
+
+[15:53] Evan Brooks: Can you talk about network isolation in Dedicated? Like, is it single tenant.
+
+[15:58] Markus Klein: Dedicated is single-tenant compute capacity. You get isolation at the cluster/pool level, and you can also restrict access via IP allowlists, private connectivity options depending on cloud. Private is the full “in your VPC” option.
+
+[16:16] Priya Desai: If we do hosted via marketplace, can we do private link?
+
+[16:21] Markus Klein: In some cases yes, but it depends on region and SKU. We can follow up.
+
+[16:28] Tom Gallagher: Another question: do you have audit logs for data access by Redwood employees?
+
+[16:34] Olga Petrov: Our internal access to production systems is logged. Customer-facing audit logs cover customer admin actions. For employee access logs, we can describe the controls and provide evidence in SOC 2, but we don’t stream raw employee logs to customers.
+
+[16:52] Tom Gallagher: That’s standard.
+
+[16:54] Priya Desai: Makes sense.
+
+[16:56] Stephanie Nguyen: I’m going to jump to retention again. We keep hearing “weeks” and “months.” We’ll follow up with precise defaults. Naomi, anything else we should note?
+
+[17:07] Naomi Feldman: Just that retention is separated: (1) request/response payload retention (ideally off), (2) operational metrics retention, (3) audit logs retention. Those have different defaults and knobs.
+
+[17:24] Priya Desai: Great. Also deletion workflow—if we need to confirm deletion, do you provide confirmation?
+
+[17:30] Naomi Feldman: For stored artifacts, yes we can provide confirmation through support and audit events for the action. For transient processing, there’s nothing persisted.
+
+[17:43] Evan Brooks: What about backups? If something is stored, does it persist in backups beyond retention?
+
+[17:49] Naomi Feldman: Backups are encrypted and access-controlled. For some systems, backups have their own lifecycle. We account for that in retention policies. We’ll provide a written statement of how deletion and retention interact with backups at a high level.
+
+[18:10] Priya Desai: Okay, thanks.
+
+[18:12] (gap)
+
+[18:14] Markus Klein: While we’re here, can I ask: are you evaluating other providers? Just to understand what you’re comparing.
+
+[18:20] Evan Brooks: We looked at Bedrock, and also direct OpenAI. Bedrock is nice for procurement but the controls are kind of… variable. And cost.
+
+[18:32] Priya Desai: And we looked at Together. We’re trying to balance performance with controls.
+
+[18:38] Markus Klein: Yep, makes sense. Our pitch is: consistent inference runtime plus enterprise controls across hosted/dedicated/private.
+
+[18:48] Stephanie Nguyen: Okay, I want to be respectful of time. Let’s do a quick checklist recap and then we’ll end early if we can.
+
+[18:56] Tom Gallagher: Works.
+
+[18:58] Stephanie Nguyen: 1) SOC 2 Type II report: Olga will share portal access instructions under NDA. 2) Marketplace security packet: Naomi will share the index and we’ll confirm what’s public versus gated. 3) Audit logs: Markus will send event list, export methods, and retention defaults. 4) Retention statement: Naomi will send exact defaults and configurable options. 5) KMS/CMK: we’ll send a deployment-mode matrix (Hosted vs Dedicated vs Private) with what’s supported today.
+
+[19:32] Mina Cho: And procurement: I’ll confirm whether we need private offer.
+
+[19:36] Stephanie Nguyen: Perfect.
+
+[19:38] Priya Desai: Can you also include subcontractors list in that packet?
+
+[19:41] Olga Petrov: Yep. I’ll include that.
+
+[19:44] Evan Brooks: And can you confirm if cross-region failover is off by default? We want that in writing.
+
+[19:50] Markus Klein: Yes. We’ll include that.
+
+[19:54] Priya Desai: Great.
+
+[19:56] Stephanie Nguyen: Before we close: any “no-go” issues if you don’t get CMK in hosted?
+
+[20:02] Priya Desai: Not a hard no-go for a limited pilot if payload logging is off and we’re not sending high sensitivity data. But for production with customer data, we’ll probably need either dedicated with CMK or private.
+
+[20:16] Stephanie Nguyen: That’s fair.
+
+[20:18] Tom Gallagher: Yep.
+
+[20:20] Stephanie Nguyen: Cool. We’ll send the follow-up within two business days. Let’s schedule a 30-minute follow-up next week once you’ve reviewed the materials.
+
+[20:30] Mina Cho: I’ll wait for the pricing path too, but yes.
+
+[20:33] Markus Klein: We can also hop on with your SIEM team if needed.
+
+[20:37] Priya Desai: Might take you up on that.
+
+[20:40] Stephanie Nguyen: Alright, thanks everyone.
+
+[20:43] (Call continues with light scheduling chatter; transcription truncated by Fireflies export settings.)
+
+[51:58] Stephanie Nguyen: Okay, we’re good. Thanks all.

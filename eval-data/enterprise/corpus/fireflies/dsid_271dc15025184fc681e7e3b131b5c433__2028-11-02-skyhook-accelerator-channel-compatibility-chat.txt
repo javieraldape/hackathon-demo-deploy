@@ -1,0 +1,62 @@
+Skyhook Accelerator - Channel Compatibility Intro
+
+Introductory discovery between Redwood (AE+SE) and Skyhook Accelerator to evaluate channel/reseller compatibility. Main themes: fit for GPU resale + managed onramp, integration surface for private deploys (VPC/on-prem), security and audit requirements, pilot scope, and benchmarking. Skyhook interested in white-labeled offering and fast benchmarks to show customers. Some confusion on product names in places (Redwood Infer mentioned).
+Meeting header: 2028-11-02 16:00 UTC, Duration 54 minutes. Attendees listed in metadata above.
+
+[00:00] Alex Kim: hey everyone thanks for joining, this is Alex from Redwood, i'm the AE on the partner motion. we also have priya our solutions engineer and jordan partner lead, will intro in a sec.
+[00:18] Lucas Moreno: hi all, lucas here at Skyhook, excited to chat. quick context, we are a channel accelerator that bundles GPU infra + managed services for regional telco customers. we want to explore a reseller/integrator relationship with Redwood.
+[00:32] Priya Singh: thanks lucas, nice to meet you. quick ask from our side — can you describe a typical customer profile and what Skyhook would want to resell or bundle? is it hosted API, dedicated, private on-prem?
+[00:45] Marta Ruiz: most customers ask for hybrid — some want hosted api but regionally isolated, others need private VPC and on prem appliance. we are particularly curious about the Dedicated offering for predictable throughput, and Private for regulated folks.
+[01:05] Diego Alvarez: technical note: our customers run a mix of gpus — A100-ish and some newer H100 equivalents, but also cheaper T4-like nodes at the edge. compatibility is key.
+[01:18] Jordan Lee: great, that's helpful. alex, maybe you want to give a 3 minute overview of how Redwood would fit into a partner/reseller flow?
+[01:28] Alex Kim: sure, super quick. Redwood provides hosted inference api, dedicated reserved capacity pools, and private deployments. partner flows vary — you can resell hosted credits, set up dedicated pools for your customers, or run our private control plane inside your VPC. we also provide tooling for rollouts, cost visibility and batch optimisation. apologies if i say redwood infer sometimes, old habit.
+[01:48] Lucas Moreno: haha, yes we heard the name mix on the pre-call doc.
+[01:52] Priya Singh: also a quick note on runtime — we manage kv cache, continuous batching, quantization-friendly paths, and kernel selection so perf is generally better than naive containers. but real numbers depend on model, sequence length, and batching patterns.
+[02:10] Marta Ruiz: when you say kv cash, do you mean kv cache? i've seen that written as kv cash in older docs.
+[02:17] Priya Singh: yeah kv cache, sorry for the slip.
+[02:20] Lucas Moreno: ok good. so top concerns to confirm — latency SLOs for conversational workloads, ability to isolate data (SaaS customers are often regulated), and KMS/HSM for key material. also marketplace/brand questions — usually our partners want white label.
+[02:38] Alex Kim: makes sense. on latency — for typical Llama- or Mistral-class 8k models we see p50 p99 numbers vary widely based on batch and hw, but our Dedicated line aims for consistent p95 within your SLA. for small chat-like sequences (256 tokens) on H100-equivalent, you should expect low-100s ms p50 in many configs. we can provide benchmark sheets.
+[03:05] Diego Alvarez: do you support GPU flavor detection and automatic kernel tuning per node type? that would be huge for our ops team.
+[03:14] Priya Singh: yes, we select kernels and compilation paths based on arch, seq lengths and perf profiles. sometimes proper quantization helps a lot for cost. but again depends on model family.
+[03:26] Hannah Cole: from a business ops perspective, how do margins and pricing work for partners reselling hosted credits vs running dedicated capacity? this impacts commercial viability.
+[03:38] Alex Kim: two primary models — reseller of hosted credits (standard per-token pricing, reseller margin), or reserved capacity contracts where Skyhook could buy committed capacity and resell slices. reserved gives better unit economics at scale but requires commits. we also do partner pricing for onboarding pilots.
+[03:59] Lucas Moreno: do you have any partner portal or billing integrations we can hook into?
+[04:05] Jordan Lee: we have a partner console planned, today billing integrations are via API and invoices for enterprise. we can discuss portal timelines.
+[04:18] Marta Ruiz: security — can we get SOC2 and ISO docs, and how do you handle audit logs for private deployments? our customers require full audit trails.
+[04:31] Priya Singh: yes, SOC2 and ISO are available. for Private we surface audit logs and can integrate with your SIEM. note that older notes might say sitemap, but it's SIEM. we also support SAML SSO, RBAC.
+[04:46] Diego Alvarez: important: KMS. Our HSM vendor is SecureKeyX and customers want key material never leaving HSM. can Redwood integrate with external HSM providers?
+[04:58] Priya Singh: we support customer-managed KMS via cloud KMS providers and can work with HSM integrations — it's an engineering effort but feasible. we need to scope the handshake for private control plane.
+[05:12] Lucas Moreno: ok good. pilot idea — run a 4-week pilot where Skyhook provisions a small dedicated pool per one telco customer, run a set of conversational and embedding workloads, measure latency/cost and failure modes. would Redwood provide test tenants and assist with bench?
+[05:30] Alex Kim: yes, we typically stand up a sandbox tenant or dedicated pilot cluster, share benchmark scripts, and give SE support. priya would lead the bench plan.
+[05:40] Priya Singh: i'll propose a benchmark matrix — model families (Llama2, Mistral), quantization levels (8-bit, 4-bit), sequence lengths (128/512/2048), concurrency patterns. we prefer customers to run real request traces when possible.
+[05:59] Marta Ruiz: will need networking details — VPC peering, allowed IP ranges, and if NAT egress is required. we also need region parity — some telco customers insist on local region.
+[06:12] Alex Kim: understood. we can map regions and confirm on VPC peering patterns.
+[06:18] Hannah Cole: timeline question — how fast can we go from contract to pilot running? 4-6 weeks realistic?
+[06:26] Alex Kim: yes for a standard pilot 4-6 weeks is common assuming security review doesn't delay. if it's private on-prem might be longer.
+[06:34] Diego Alvarez: curious about fallback: if a private deployment loses capacity, can traffic automatically route to hosted variants to keep customers live?
+[06:43] Priya Singh: yes, smart routing and fallback policies exist — you can configure automated fallback to hosted compatible model variants. note there are caveats around data residency and entitlements.
+[06:57] Lucas Moreno: great. also question on white-labeling — can Skyhook present the inference UI and management as our own or does Redwood require co-branding?
+[07:06] Jordan Lee: we support white-label partner experiences for channel partners under enterprise agreements. details to be hashed out in commercial terms.
+[07:17] Alex Kim: just flagging an operational question — telemetry and cost visibility: partners often want token-level cost breakdown per tenant. we do provide per-route/model dashboards and cost snapshots.
+[07:29] Marta Ruiz: perfect. and SSO we already use Okta, want SAML setup.
+[07:35] Priya Singh: SAML/Okta supported. we'll share SSO setup guide.
+[07:41] [silence/typing for 30s]
+[08:12] Diego Alvarez: i have a nit — some older docs called caching prefix and kv cash, i just want to ensure cache invalidation and multi-tenant isolation is solid.
+[08:23] Priya Singh: yes each tenant's KV cache is isolated, we can share design notes. cache invalidation policy can be tuned.
+[08:32] Lucas Moreno: ok perfect. any legal things to flag early — data residency agreements or processing addendums?
+[08:40] Alex Kim: we have data processing addendums and can do regional data controls. we'll share standard contract language.
+[08:48] Marta Ruiz: for the pilot, can we get an estimated cost sheet so we can model margins?
+[08:55] Alex Kim: i'll share a sample pricing model and a margin calc sheet for partners.
+[09:01] Hannah Cole: also, will Redwood help with co-selling or joint GTM enablement?
+[09:07] Jordan Lee: yes partner GTM programs exist — joint marketing, enablement, and deal registration can be discussed.
+[09:15] Lucas Moreno: good to hear. technical deep-dive scheduling — we prefer late next week, can priya and diego align?
+[09:23] Priya Singh: yes i'll propose two slots and include a 90 minute SE-led bench planning session.
+[09:31] Diego Alvarez: i'll bring sample request traces and cluster specs.
+[09:36] Alex Kim: wrapping up, i'll summarize next steps in the follow-up email: send deck, security docs, suggest two deep-dive times, sandbox tenant details and pilot outline.
+[09:49] Lucas Moreno: sounds good. quick thing — any gotchas or common pitfalls partners hit?
+[09:55] Priya Singh: common ones: underestimating concurrency patterns (bursting), not tuning batching, and forgetting to test quantized model quality regressions. also network egress rules can bite when private clusters try to download model artifacts.
+[10:12] Marta Ruiz: noted.
+[10:16] Alex Kim: thanks everyone appreciate the time. we'll follow up within 48 hours.
+[10:22] Lucas Moreno: thanks all. bye.
+
+End transcript.
