@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+if running "$DB_NAME"; then echo 'Postgres: running (127.0.0.1:55432)'; else echo 'Postgres: stopped'; fi
+if listening 8129 '*'; then echo 'QM portal: listening (http://localhost:8129 in Desktop only; upstream binds all host interfaces)'; else echo 'QM portal: stopped'; fi
+if listening 8081 '*'; then echo 'QM core: listening (:8081; upstream binds all host interfaces)'; else echo 'QM core: stopped'; fi
+if listening 8129 '*'; then
+  rule=(INPUT -i eth0 -p tcp -m multiport --dports 8081,8097,8113,8129 -j REJECT)
+  if ! sudo -n iptables -w -C "${rule[@]}" >/dev/null 2>&1 ||
+     ! sudo -n ip6tables -w -C "${rule[@]}" >/dev/null 2>&1; then
+    echo 'WARNING: QM eth0 firewall rules absent or unverifiable; do not expose the portal' >&2
+  fi
+fi
+if session "$GBRAIN_SESSION" && listening 3131; then echo 'GBrain: running (127.0.0.1:3131)'; else echo 'GBrain: stopped or externally managed'; fi
+if session "$CLAW_SESSION" && listening 30650; then echo 'OpenClaw hackathon: running (127.0.0.1:30650)'; else echo 'OpenClaw hackathon: stopped or externally managed'; fi

@@ -1,0 +1,6 @@
+// Guidance only: restore the real private config instead of using this placeholder.
+// Keep the gateway local; Telegram token belongs in the restored private state.
+{
+  gateway: { mode: "local", bind: "loopback", port: 30650 },
+  channels: { telegram: { enabled: false } }
+}

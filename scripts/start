@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+service="${1:-all}"
+[[ $# -le 1 ]] || { echo 'Usage: scripts/start [db|qm|gbrain|openclaw|all]' >&2; exit 2; }
+wait_session_port() {
+  local name="$1" port="$2" log="$3"
+  for attempt in {1..90}; do
+    if ! session "$name"; then
+      echo "Service exited before listening; inspect private logs/$log" >&2; return 1
+    fi
+    if listening "$port"; then return; fi
+    sleep 1
+  done
+  tmux kill-session -t "=$name" 2>/dev/null || true
+  echo "Service did not bind within 90 seconds and was stopped; inspect private logs/$log" >&2
+  return 1
+}
+db() {
+  require docker
+  require_private "$DEMO_RUNTIME_ROOT/credentials/postgres.env"
+  docker info >/dev/null
+  if ! existing "$DB_NAME"; then
+    docker volume inspect hackathon-demo-pgdata >/dev/null 2>&1 || docker volume create hackathon-demo-pgdata >/dev/null
+    docker run -d --name "$DB_NAME" --restart unless-stopped \
+      --env-file "$DEMO_RUNTIME_ROOT/credentials/postgres.env" \
+      -v hackathon-demo-pgdata:/var/lib/postgresql/data -p 127.0.0.1:55432:5432 \
+      postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777 >/dev/null
+  elif ! running "$DB_NAME"; then docker start "$DB_NAME" >/dev/null; fi
+  if [[ "$(docker port "$DB_NAME" 5432/tcp)" != '127.0.0.1:55432' ]]; then
+    echo 'Postgres is not published exclusively on the expected host loopback port' >&2; exit 1
+  fi
+  for attempt in {1..60}; do
+    if docker exec "$DB_NAME" pg_isready -h 127.0.0.1 -U postgres >/dev/null 2>&1; then return; fi
+    sleep 1
+  done
+  echo 'Postgres did not become ready' >&2; exit 1
+}
+qm() {
+  require ss
+  require_private "$QM_DEV_ENV"
+  require_private "$DEMO_RUNTIME_ROOT/credentials/codex/auth.json"
+  grep -Fxq 'HARNESS=codex' "$QM_DEV_ENV" &&
+    grep -Fxq "CODEX_AUTH_FILE=$DEMO_RUNTIME_ROOT/credentials/codex/auth.json" "$QM_DEV_ENV" || {
+      echo 'QM Codex env is not configured; restore or adopt private credentials first' >&2; exit 1
+    }
+  [[ "$(git -C "$QM_SOURCE" rev-parse HEAD)" = "$QM_COMMIT" ]] || { echo 'QM checkout does not match pin' >&2; exit 1; }
+  "$REPO_ROOT/scripts/lockdown" >/dev/null
+  db
+  export QM_POOL_STORE QM_DEV_ENV HARNESS=codex
+  export CODEX_AUTH_FILE="$DEMO_RUNTIME_ROOT/credentials/codex/auth.json"
+  export DEV_INSTANCE_BASE_PORT=8080 DEV_INSTANCE_NO_SLACK=1 DEV_INSTANCE_IDLE_HOURS=0
+  if listening 8129 '*'; then echo 'QM portal already listening; not starting another instance'; return; fi
+  if ! (cd "$QM_SOURCE" && bash scripts/dev-instance.sh up --surface web --no-watch --sandbox local >/dev/null 2>&1); then
+    echo 'QM startup failed; inspect its private supervisor logs' >&2; return 1
+  fi
+}
+gbrain() {
+  require tmux; require ss
+  [[ -f "$GBRAIN_HOME/.gbrain/config.json" ]] || { echo 'Restore private GBrain state first' >&2; exit 1; }
+  if ! session "$GBRAIN_SESSION"; then
+    if listening 3131; then echo 'Port 3131 already has a listener; refusing a second GBrain server' >&2; return 1; fi
+    tmux new-session -d -s "$GBRAIN_SESSION" -c "$GBRAIN_SOURCE" "bash '$REPO_ROOT/scripts/run-gbrain'; exit \$?"
+  fi
+  wait_session_port "$GBRAIN_SESSION" 3131 gbrain.log
+}
+openclaw() {
+  require tmux; require ss
+  require_private "$DEMO_RUNTIME_ROOT/credentials/telegram-cutover-approved"
+  require_private "$DEMO_RUNTIME_ROOT/credentials/openclaw-prepared"
+  require_private "$CLAW_STATE/openclaw.json"
+  [[ -x "$CLAW_PACKAGE/node_modules/.bin/openclaw" ]] || { echo 'Install pinned OpenClaw packages first' >&2; exit 1; }
+  if ! session "$CLAW_SESSION"; then
+    if listening 30650; then echo 'Port 30650 already has a listener; refusing a second Telegram poller' >&2; return 1; fi
+    tmux new-session -d -s "$CLAW_SESSION" -c "$CLAW_STATE" "bash '$REPO_ROOT/scripts/run-openclaw'; exit \$?"
+  fi
+  wait_session_port "$CLAW_SESSION" 30650 openclaw.log
+}
+case "$service" in
+  db) db;; qm) qm;; gbrain) gbrain;; openclaw) openclaw;;
+  all) db; qm; gbrain; openclaw;;
+  *) echo 'Usage: scripts/start [db|qm|gbrain|openclaw|all]' >&2; exit 2;;
+esac
+"$REPO_ROOT/scripts/status"

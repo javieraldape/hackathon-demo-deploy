@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+require ss
+require_private "$CLAW_STATE/openclaw.json"
+[[ -x "$CLAW_PACKAGE/node_modules/.bin/openclaw" ]] || { echo 'Install OpenClaw first' >&2; exit 1; }
+if listening 30650; then echo 'Stop the OpenClaw gateway before repairing its private plugin registry' >&2; exit 1; fi
+export OPENCLAW_STATE_DIR="$CLAW_STATE" OPENCLAW_CONFIG_PATH="$CLAW_STATE/openclaw.json"
+umask 077
+mkdir -p "$DEMO_RUNTIME_ROOT/logs" "$DEMO_RUNTIME_ROOT/credentials"
+[[ ! -L "$DEMO_RUNTIME_ROOT/logs" && ! -L "$DEMO_RUNTIME_ROOT/logs/openclaw-prepare.log" ]] || exit 1
+chmod 700 "$DEMO_RUNTIME_ROOT/logs"
+touch "$DEMO_RUNTIME_ROOT/logs/openclaw-prepare.log"
+chmod 600 "$DEMO_RUNTIME_ROOT/logs/openclaw-prepare.log"
+log="$DEMO_RUNTIME_ROOT/logs/openclaw-prepare.log"
+cli="$CLAW_PACKAGE/node_modules/.bin/openclaw"
+if ! "$cli" --profile hackathon plugins install "@openclaw/codex@$OPENCLAW_VERSION" --force >>"$log" 2>&1 ||
+   ! "$cli" --profile hackathon doctor --fix >>"$log" 2>&1 ||
+   ! "$cli" --profile hackathon config validate >>"$log" 2>&1; then
+  echo 'OpenClaw plugin repair or config validation failed; inspect private logs/openclaw-prepare.log' >&2; exit 1
+fi
+install -m 0600 /dev/null "$DEMO_RUNTIME_ROOT/credentials/openclaw-prepared"
+echo 'OpenClaw Codex plugin registered and private config validated.'

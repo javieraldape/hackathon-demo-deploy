@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+export OPENCLAW_STATE_DIR="$CLAW_STATE"
+export OPENCLAW_CONFIG_PATH="$CLAW_STATE/openclaw.json"
+cd "$CLAW_STATE"
+umask 077
+mkdir -p "$DEMO_RUNTIME_ROOT/logs"
+[[ ! -L "$DEMO_RUNTIME_ROOT/logs" && ! -L "$DEMO_RUNTIME_ROOT/logs/openclaw.log" ]] || exit 1
+chmod 700 "$DEMO_RUNTIME_ROOT/logs"
+touch "$DEMO_RUNTIME_ROOT/logs/openclaw.log"
+chmod 600 "$DEMO_RUNTIME_ROOT/logs/openclaw.log"
+exec "$CLAW_PACKAGE/node_modules/.bin/openclaw" --profile hackathon gateway run --port 30650 --bind loopback \
+  </dev/null >>"$DEMO_RUNTIME_ROOT/logs/openclaw.log" 2>&1
