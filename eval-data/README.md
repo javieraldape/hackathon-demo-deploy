@@ -4,6 +4,8 @@ This directory contains public benchmark material and reproducible collection in
 
 ## What each collection tests
 
+Preparation documents: [permission contract](PERMISSION-CONTRACT.md), [evaluation brief](EVALUATION-BRIEF.md), and [cloud execution handoff](CLOUD-HANDOFF.md). These define intended checks; the independent fixture and leak harness are not implemented.
+
 - `enterprise/`: realistic company documents and retrieval questions. It is not a fact-level authorization oracle.
 - `meetings/`: long, multi-speaker discussions and supporting answer spans, subject to the source corpus's redistribution terms.
 - `memory/`: LongMemEval evidence and questions for recall, updates, temporal reasoning, and abstention. An adapted subset is not an official full-benchmark score.

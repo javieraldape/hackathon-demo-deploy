@@ -28,6 +28,9 @@
 !/openclaw/package-lock.json
 !/eval-data/
 !/eval-data/README.md
+!/eval-data/PERMISSION-CONTRACT.md
+!/eval-data/EVALUATION-BRIEF.md
+!/eval-data/CLOUD-HANDOFF.md
 !/eval-data/enterprise/
 !/eval-data/meetings/
 !/eval-data/memory/
