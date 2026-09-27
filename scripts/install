@@ -21,7 +21,7 @@ fi
 (cd "$QM_SOURCE" && npm ci && npm --prefix plugins/web-ui ci && npm run build:connector-sdk && npm --prefix plugins/web-ui run build)
 (cd "$QM_SOURCE" && npm run sandbox:local:build)
 (cd "$GBRAIN_SOURCE" && GBRAIN_NO_AUTOPILOT_INSTALL=1 bun install --frozen-lockfile --ignore-scripts)
-uv venv --python 3.13 "$DEMO_RUNTIME_ROOT/../tools/typesafe-sdk"
+uv venv --allow-existing --python 3.13 "$DEMO_RUNTIME_ROOT/../tools/typesafe-sdk"
 uv pip install --python "$DEMO_RUNTIME_ROOT/../tools/typesafe-sdk/bin/python" --require-hashes -r "$REPO_ROOT/jev/requirements.txt"
 mkdir -p "$CLAW_PACKAGE"
 cp "$REPO_ROOT/openclaw/package.json" "$REPO_ROOT/openclaw/package-lock.json" "$CLAW_PACKAGE/"
