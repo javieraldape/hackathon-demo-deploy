@@ -58,6 +58,14 @@ Before Telegram cutover, verify the Mac OpenClaw poller and any other process us
 
 `scripts/stop [db|qm|gbrain|openclaw|all]` preserves state; `scripts/status` reports listeners/sessions without printing secrets. GBrain/OpenClaw run in named tmux sessions and write private mode-0600 logs under `stage/logs/`; those logs can contain sensitive data, so never copy or commit them. QM uses its own supervisor (`scripts/dev-instance.sh status` from the pinned checkout) and private pool. Do not remove its database Docker volume as part of normal shutdown.
 
+## Shared-brain routing in QM
+
+After restoring private state and starting QM/GBrain, run `scripts/configure-qm-brain` once. It adds the shared-brain routing policy to QM's organization instructions through the local admin API, preserving existing instructions and using a version check to reject concurrent edits. The policy is stored in PostgreSQL and survives service restarts. Rerunning the command is idempotent; run it again after restoring an older database or updating the policy in the script.
+
+QM's built-in `memory` notebook is separate from GBrain. Requests about “the brain,” Telegram-saved memories, and fact IDs must use `hackathon-gbrain_recall`; a notebook's third bullet is not GBrain fact #3. The existing QM connection remains read-only, while OpenClaw handles shared-brain writes. A GBrain fact does not need a named page to be retrievable.
+
+Run `python3 -m unittest discover -s tests -v` for policy-update tests. For a live regression, first save a synthetic fact through Telegram/OpenClaw and note its returned ID, then run `scripts/test-brain-routing --fact-id ID --expected-text TEXT`. This creates a fresh QM conversation and asks the original natural-language “last thing … save to the brain” and “look at fact #ID” questions without supplying the expected text to the agent. Run while that fact is still the latest shared-brain save. The test requires a GBrain recall tool call and the expected text in both answers; it fails on local-notebook fallback.
+
 ## JEV decisions
 
 JEV is TypeSafe's hosted System One model, not a local background service. `scripts/install` pins the official `typesafe-sdk==0.7.2`; the similarly named third-party `jev-cli` is not part of this deployment. Put the API key from 1Password in the machine's secure `TYPESAFE_API_KEY` environment variable, never a file in Git. Run a real, synthetic hosted evaluation without printing the key or answer content:
