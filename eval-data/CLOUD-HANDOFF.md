@@ -9,4 +9,4 @@ Javier selected cloud execution with parallel agents on multiple VMs. This super
 - Required model keys must be supplied through secure environment configuration, not Mac `op read`, Git, snapshots or chat. Do not assume this thread's variables are inherited by every new VM. Key access verification is deferred with the operational checklist.
 - Never transfer the private Mac restore backup for dataset evaluation. Use only public/synthetic evaluation inputs and isolated test credentials. Do not start OpenClaw/Telegram.
 - Start the independent fixture/evaluator VM with only the evaluation brief, permission contract and required public formats. Keep sealed labels and questions away from implementation agents and the searchable brain.
-- Dataset collection is in PR #1 until merged; a fresh checkout of `main` does not contain it yet. The lead must select the data branch or merge only with explicit authorization before kickoff.
+- Use a checkout containing the dataset and preparation changes from PR #1. Refresh older `main` checkouts before kickoff; confirm `eval-data/PERMISSION-CONTRACT.md` exists and run all four dataset validators.
