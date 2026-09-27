@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+require docker
+require ss
+[[ -n "${QM_PREVIEW_PASSWORD:-}" ]] || { echo 'Set QM_PREVIEW_PASSWORD through the secure environment first' >&2; exit 1; }
+[[ -d "$DEMO_RUNTIME_ROOT/credentials" && ! -L "$DEMO_RUNTIME_ROOT/credentials" ]] || exit 1
+require_private "$DEMO_RUNTIME_ROOT/credentials/preview-origin"
+[[ ! -L "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile" ]] || exit 1
+[[ ! -e "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile" ]] || {
+  require_private "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile"
+}
+if listening 8188; then echo 'Preview gate port is already occupied' >&2; exit 1; fi
+python3 - "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile" "$DEMO_RUNTIME_ROOT/credentials/preview-origin" <<'PY'
+import os
+import pathlib
+import subprocess
+import sys
+import tempfile
+from urllib.parse import urlsplit
+
+password = os.environ['QM_PREVIEW_PASSWORD']
+if not (20 <= len(password.encode()) <= 72) or not all(33 <= ord(c) <= 126 for c in password):
+    raise SystemExit('Preview password must be 20–72 printable ASCII characters')
+origin = pathlib.Path(sys.argv[2]).read_text().strip()
+parsed = urlsplit(origin)
+if parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password or parsed.port or parsed.path or parsed.query or parsed.fragment or any(c.isspace() for c in origin):
+    raise SystemExit('Preview origin must be a bare HTTPS origin')
+image = 'caddy@sha256:c3d7ee5d2b11f9dc54f947f68a734c84e9c9666c92c88a7f30b9cba5da182adb'
+result = subprocess.run(
+    ['docker', 'run', '--rm', '-i', image, 'caddy', 'hash-password'],
+    input=password + '\n', text=True, capture_output=True,
+)
+if result.returncode:
+    raise SystemExit('Could not hash the preview password')
+config = '''
+:8188 {
+    bind 127.0.0.1
+    @cross_site expression `({header.Sec-Fetch-Site} == "cross-site" || {header.Sec-Fetch-Site} == "same-site") && {header.Sec-Fetch-Mode} != "navigate"`
+    respond @cross_site 403
+    @foreign_origin expression `{header.Origin} != "" && {header.Origin} != EXPECTED_ORIGIN`
+    respond @foreign_origin 403
+    basic_auth {
+        qm-demo HASH
+    }
+    reverse_proxy 127.0.0.1:8129 {
+        header_up Host localhost:8129
+        header_up Origin http://localhost:8129
+        header_up -Authorization
+        header_up -Proxy-Authorization
+    }
+}
+'''.replace('HASH', result.stdout.strip()).replace('EXPECTED_ORIGIN', '"' + origin + '"')
+path = pathlib.Path(sys.argv[1])
+os.umask(0o077)
+with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, prefix='.preview-', delete=False) as handle:
+    handle.write(config)
+    temp = pathlib.Path(handle.name)
+os.replace(temp, path)
+PY
+unset QM_PREVIEW_PASSWORD
+docker run --rm --name qm-preview-gate --network host --read-only --tmpfs /tmp \
+  -e XDG_CONFIG_HOME=/tmp \
+  -v "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile:/etc/caddy/Caddyfile:ro" \
+  caddy@sha256:c3d7ee5d2b11f9dc54f947f68a734c84e9c9666c92c88a7f30b9cba5da182adb \
+  caddy run --config /etc/caddy/Caddyfile

@@ -14,6 +14,7 @@
 !/scripts/adopt-live
 !/scripts/lockdown
 !/scripts/prepare-openclaw
+!/scripts/preview-gate
 !/templates/
 !/templates/qm.env.example
 !/templates/postgres.env.example
