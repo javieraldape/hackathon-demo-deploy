@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+if [[ -f "$DEMO_RUNTIME_ROOT/credentials/gbrain.env" ]]; then
+  require_private "$DEMO_RUNTIME_ROOT/credentials/gbrain.env"
+  set -a
+  source "$DEMO_RUNTIME_ROOT/credentials/gbrain.env"
+  set +a
+fi
+export GBRAIN_HOME
+cd "$GBRAIN_SOURCE"
+umask 077
+mkdir -p "$DEMO_RUNTIME_ROOT/logs"
+[[ ! -L "$DEMO_RUNTIME_ROOT/logs" && ! -L "$DEMO_RUNTIME_ROOT/logs/gbrain.log" ]] || exit 1
+chmod 700 "$DEMO_RUNTIME_ROOT/logs"
+touch "$DEMO_RUNTIME_ROOT/logs/gbrain.log"
+chmod 600 "$DEMO_RUNTIME_ROOT/logs/gbrain.log"
+exec bun run src/cli.ts serve --http --port 3131 --bind 127.0.0.1 --enable-dcr \
+  </dev/null >>"$DEMO_RUNTIME_ROOT/logs/gbrain.log" 2>&1

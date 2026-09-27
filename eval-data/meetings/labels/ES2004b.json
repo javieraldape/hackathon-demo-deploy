@@ -1,0 +1,112 @@
+{
+  "topic_list": [
+    {
+      "topic": "A brief review of the last meeting",
+      "relevant_text_span": [
+        [
+          "0",
+          "17"
+        ]
+      ]
+    },
+    {
+      "topic": "Battery issue and flip top design",
+      "relevant_text_span": [
+        [
+          "21",
+          "85"
+        ]
+      ]
+    },
+    {
+      "topic": "Market research and adjustments due to new project requirements",
+      "relevant_text_span": [
+        [
+          "117",
+          "478"
+        ]
+      ]
+    },
+    {
+      "topic": "Summary of the new project requirements",
+      "relevant_text_span": [
+        [
+          "479",
+          "522"
+        ]
+      ]
+    }
+  ],
+  "general_query_list": [
+    {
+      "query": "Summarize the whole meeting.",
+      "answer": "The team mainly made some adjustments to the remote control design to meet the new project requirements. The second meeting started with Project Manager who briefly went over the last meeting. Industrial Designer hoped to minimize the size of the battery. The team thus decided on a rechargeable one. User Interface desired to simplify the remote control style, cutting down unnecessary functions. According to the market research presented by Marketing, the team agreed on a trendy and user-friendly flip-top design. An alarm would be incorporated for detection in case the remote control was lost in the house."
+    }
+  ],
+  "specific_query_list": [
+    {
+      "query": "What did the group discuss about battery issues and flip top design?",
+      "answer": "On battery issue, Industrial Designer expressed a desire to minimize the size of the battery. Meanwhile, cost, power consumption, wireless range and data transmission were supposed to be considered. User Interface's presentation followed. The remote control design would be simplified and user-friendly. To make the style more trendy, User Interface decided on a flip-top model.",
+      "relevant_text_span": [
+        [
+          "21",
+          "85"
+        ]
+      ]
+    },
+    {
+      "query": "What did Industrial Designer think of triple A batteries when discussing battery issues and flip top design?",
+      "answer": "Industrial Designer admitted that current remote controls were mostly powered by triple A batteries. However, Industrial Designer also pointed out that they were bulky, although they had been the smallest fit-in batteries at present. Industrial Designer expressed a desire to find a smaller alternative for triple A batteries.",
+      "relevant_text_span": [
+        [
+          "31",
+          "47"
+        ]
+      ]
+    },
+    {
+      "query": "Summarize the discussion about market research and adjustments due to new project requirements.",
+      "answer": "The market research presented by Marketing implicated that the remote control design was expected to be more stylish and less complicated. Project Manager added that an ideal model would be for TV only and have a corporate logo incorporated. To meet the requirements above, Industrial Designer recommended a touch screen panel. Marketing suggested that the remote control size could be adjusted due to physical differences among international users. The team gave up speech recognition, for it would cost a lot. An alarm would be incorporated for detection in case the remote control was lost in the house.",
+      "relevant_text_span": [
+        [
+          "117",
+          "478"
+        ]
+      ]
+    },
+    {
+      "query": "Why did Industrial Designer think of incorporating an alarm when discussing market research and adjustments due to new project requirements?",
+      "answer": "The market research implicated that users' biggest frustration was their failure in finding the remote control once it was lost in the house. To solve the problem, Industrial Designer suggested that a button could be added on the TV; when the user pressed the button, the remote control would beep to let the user know its location. Meanwhile, such a solution would be within budget.",
+      "relevant_text_span": [
+        [
+          "119",
+          "119"
+        ],
+        [
+          "171",
+          "188"
+        ]
+      ]
+    },
+    {
+      "query": "Why did Industrial Designer think of physically different designs when discussing market research and adjustments due to new project requirements?",
+      "answer": "Industrial Designer was inspired by the design of Xbox and gave an example of Japanese people's small hands compared to the big controller. Out of ergonomic considerations, Industrial Designer encouraged the team to notice the physical differences among users all over the world when deciding the remote control size.",
+      "relevant_text_span": [
+        [
+          "229",
+          "248"
+        ]
+      ]
+    },
+    {
+      "query": "What's the conclusion of the remote control style when discussing market research and adjustments due to new project requirements?",
+      "answer": "Overall, the model style was expected to be trendy and appealing. Marketing and Project Manager agreed on User Interface's design of a flip-screen. Marketing also hoped that the remote control would be slightly curved. User Interface added that the remote control would curl up to users' hands so that their thumbs did not have to press. The corporate logo would be put in the corner. The model would be made of lightweight plastic with a smooth bottom and a nice scallop shell exterior.",
+      "relevant_text_span": [
+        [
+          "414",
+          "478"
+        ]
+      ]
+    }
+  ]
+}

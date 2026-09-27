@@ -1,0 +1,55 @@
+--- a/dist/thread-bindings-DUiuuGsl.mjs
++++ b/dist/thread-bindings-DUiuuGsl.mjs
+@@ -159,7 +159,7 @@
+ function persistBindingMutation(params) {
+ 	if (!params.persist) return;
+ 	try {
+-		const store = openThreadBindingStore();
++		const store = params.store ?? openThreadBindingStore();
+ 		const key = resolveStoredBindingKey(params.binding);
+ 		if (params.remove) {
+ 			store.delete(key);
+@@ -184,6 +184,7 @@
+ 	const existing = getThreadBindingsState().managersByAccountId.get(accountId);
+ 	if (existing) return existing;
+ 	const persist = params.persist ?? true;
++	const bindingStore = persist ? openThreadBindingStore() : void 0;
+ 	const idleTimeoutMs = normalizeDurationMs(params.idleTimeoutMs, DEFAULT_THREAD_BINDING_IDLE_TIMEOUT_MS);
+ 	const maxAgeMs = normalizeDurationMs(params.maxAgeMs, DEFAULT_THREAD_BINDING_MAX_AGE_MS);
+ 	const loaded = loadBindingsFromStore(accountId);
+@@ -276,8 +277,8 @@
+ 			});
+ 			const removed = getThreadBindingsState().bindingsByAccountConversation.get(key) ?? null;
+ 			if (!removed) return null;
+-			getThreadBindingsState().bindingsByAccountConversation.delete(key);
+ 			persistBindingMutation({
++				store: bindingStore,
+ 				accountId,
+ 				persist: manager.shouldPersistMutations(),
+ 				binding: removed,
+@@ -285,6 +286,7 @@
+ 				reason: "unbind-conversation",
+ 				throwOnError: unbindParams.throwOnPersistError
+ 			});
++			getThreadBindingsState().bindingsByAccountConversation.delete(key);
+ 			return removed;
+ 		},
+ 		unbindBySessionKey: (unbindParams) => {
+@@ -297,8 +299,8 @@
+ 					accountId,
+ 					conversationId: entry.conversationId
+ 				});
+-				getThreadBindingsState().bindingsByAccountConversation.delete(key);
+ 				persistBindingMutation({
++					store: bindingStore,
+ 					accountId,
+ 					persist: manager.shouldPersistMutations(),
+ 					binding: entry,
+@@ -306,6 +308,7 @@
+ 					reason: "unbind-session",
+ 					throwOnError: unbindParams.throwOnPersistError
+ 				});
++				getThreadBindingsState().bindingsByAccountConversation.delete(key);
+ 				removed.push(entry);
+ 			}
+ 			return removed;

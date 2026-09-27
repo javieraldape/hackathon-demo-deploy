@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+[[ $# -ge 2 && $# -le 3 ]] || {
+  echo 'Usage: scripts/restore /absolute/private/backup /Users/mac-login [old-cloud-stage-root]' >&2; exit 2
+}
+snapshot="$1"
+mac_home="$2"
+old_cloud_root="${3:-/home/user/.capy/work/hackathon-runtime/stage}"
+[[ "$snapshot" = /* && "$mac_home" = /Users/* && "$old_cloud_root" = /* && "$snapshot" != "$REPO_ROOT"* ]] || {
+  echo 'Use absolute private backup and source paths outside Git' >&2; exit 2
+}
+[[ -d "$snapshot" && ! -L "$snapshot" && "$(stat -c %a "$snapshot")" = 700 ]] || {
+  echo 'Private backup directory must exist, be 0700, and not be symlinked' >&2; exit 1
+}
+for directory in openclaw gbrain-home/.gbrain hackathon credentials/hackathon credentials/codex; do
+  [[ -d "$snapshot/$directory" && ! -L "$snapshot/$directory" ]] || {
+    echo "Missing private backup directory: $directory" >&2; exit 1
+  }
+done
+for file in qm.pgcustom openclaw/openclaw.json gbrain-home/.gbrain/config.json credentials/codex/auth.json; do
+  require_private "$snapshot/$file"
+done
+[[ "$(head -c 5 "$snapshot/qm.pgcustom")" = PGDMP ]] || { echo 'Expected a PostgreSQL custom-format dump' >&2; exit 1; }
+[[ -n "$(find "$snapshot/credentials/hackathon" -type f -print -quit)" ]] || {
+  echo 'Private hackathon credentials backup is empty' >&2; exit 1
+}
+if find "$snapshot" -type l -print -quit | grep -q .; then echo 'Backup symlinks require operator review; refusing restore' >&2; exit 1; fi
+if find "$snapshot" -perm /077 -print -quit | grep -q .; then
+  echo 'Private backup contains group/world-accessible entries; tighten permissions first' >&2; exit 1
+fi
+require_private "$DEMO_RUNTIME_ROOT/credentials/postgres.env"
+require_private "$QM_DEV_ENV"
+[[ "$(git -C "$QM_SOURCE" rev-parse HEAD 2>/dev/null)" = "$QM_COMMIT" ]] || {
+  echo 'Run scripts/install on the pinned QM checkout first' >&2; exit 1
+}
+for path in "$GBRAIN_HOME/.gbrain" "$CLAW_STATE/openclaw.json" "$DEMO_RUNTIME_ROOT/hackathon" \
+  "$DEMO_RUNTIME_ROOT/credentials/hackathon" "$DEMO_RUNTIME_ROOT/credentials/codex"; do
+  [[ ! -e "$path" ]] || { echo 'Target already has private state; refusing overwrite' >&2; exit 1; }
+done
+if existing "$DB_NAME"; then echo 'Target Postgres already exists; refusing to overwrite an existing database' >&2; exit 1; fi
+umask 077
+mkdir -p "$GBRAIN_HOME" "$CLAW_STATE" "$DEMO_RUNTIME_ROOT/credentials"
+cp -a "$snapshot/gbrain-home/.gbrain" "$GBRAIN_HOME/.gbrain"
+cp -a "$snapshot/openclaw/." "$CLAW_STATE/"
+cp -a "$snapshot/hackathon" "$DEMO_RUNTIME_ROOT/hackathon"
+cp -a "$snapshot/credentials/hackathon" "$DEMO_RUNTIME_ROOT/credentials/hackathon"
+cp -a "$snapshot/credentials/codex" "$DEMO_RUNTIME_ROOT/credentials/codex"
+python3 - "$mac_home" "$old_cloud_root" "$DEMO_RUNTIME_ROOT" <<'PY'
+import os, pathlib, sys
+mac_home, old_cloud_root, root = sys.argv[1:]
+stage = pathlib.Path(root)
+rewrites = {
+    f'{mac_home}/Library/Application Support/hackathon-gbrain-state/.gbrain': str(stage / 'gbrain-home/.gbrain'),
+    f'{mac_home}/.openclaw-hackathon/workspace': str(stage / 'hackathon'),
+    f'{mac_home}/.openclaw-hackathon/credentials/hackathon': str(stage / 'credentials/hackathon'),
+    f'{mac_home}/.openclaw-hackathon': str(stage / 'openclaw'),
+    f'{mac_home}/.codex': str(stage / 'credentials/codex'),
+    f'{mac_home}/.capy/work/hackathon-runtime/stage': str(stage),
+    old_cloud_root: str(stage),
+}
+for path in (stage / 'gbrain-home/.gbrain/config.json', stage / 'openclaw/openclaw.json'):
+    text = path.read_text()
+    for before, after in rewrites.items():
+        text = text.replace(before, after)
+    if mac_home in text:
+        raise SystemExit('Unmapped Mac path in private config; correct it privately before starting services')
+    path.write_text(text)
+    os.chmod(path, 0o600)
+path = stage / 'credentials/qm.env'
+lines = path.read_text().splitlines()
+lines = [line for line in lines if not line.startswith(('HARNESS=', 'CODEX_AUTH_FILE='))]
+lines.extend(('HARNESS=codex', f'CODEX_AUTH_FILE={stage}/credentials/codex/auth.json'))
+path.write_text('\n'.join(lines) + '\n')
+os.chmod(path, 0o600)
+PY
+"$REPO_ROOT/scripts/start" db >/dev/null
+restore_error="$DEMO_RUNTIME_ROOT/credentials/restore-error.log"
+if ! docker exec -i "$DB_NAME" pg_restore -U postgres -d qm --no-owner --no-acl --clean --if-exists --exit-on-error \
+  < "$snapshot/qm.pgcustom" >/dev/null 2>"$restore_error"; then
+  chmod 600 "$restore_error"
+  echo 'Database restore failed; private diagnostics are in credentials/restore-error.log' >&2; exit 1
+fi
+rm -f "$restore_error"
+"$REPO_ROOT/scripts/prepare-openclaw"
+echo 'Private backup restored. Review rewritten paths and OAuth before starting QM, GBrain, or OpenClaw.'

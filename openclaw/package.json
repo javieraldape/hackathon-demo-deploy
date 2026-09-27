@@ -1,0 +1,9 @@
+{
+  "name": "hackathon-demo-openclaw-image",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@openclaw/codex": "2026.9.6",
+    "openclaw": "2026.9.6"
+  }
+}
