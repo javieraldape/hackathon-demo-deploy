@@ -21,6 +21,8 @@ These are enforced code and runtime-configuration contracts, not a claim of exha
 
 For a configured bot, send `/capture_meeting arm` in its allowlisted direct message, approve the native binding if requested, send one pasted transcript or one UTF-8 `.txt` file (at most 20,000 bytes), and wait for a committed receipt. Send `/capture_meeting done` to return to ordinary chat. Inline command transcripts, PDFs, voice, images, and multi-file uploads are unsupported.
 
+For repeatable lookup by a non-sensitive meeting name, explicitly approve that title with `/capture_meeting arm --public-title Lantern Forge coordination meeting`. The title must exactly match the transcript's marked first-line title. This authorizes sharing only the title; fact classification and private-source restrictions still apply. Without explicit approval, a rejected or uncertain shared title stops a named capture before publication instead of silently storing unsearchable shared facts.
+
 ## Repository map
 
 | Path | Purpose |

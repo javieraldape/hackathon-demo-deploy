@@ -61,7 +61,7 @@ index 28783544..215c21f5 100644
          results.push({ scopeId: scope, fact });
        }
 diff --git a/src/memory/mcp-memory-provider.ts b/src/memory/mcp-memory-provider.ts
-index 5b756abb..17af752f 100644
+index 5b756abb..07cc8817 100644
 --- a/src/memory/mcp-memory-provider.ts
 +++ b/src/memory/mcp-memory-provider.ts
 @@ -1,5 +1,6 @@
@@ -106,15 +106,25 @@ index 5b756abb..17af752f 100644
  
      async capture(scopeId, facts, at, author, context) {
        const op = opts.write;
-@@ -69,7 +73,7 @@ export function createMcpMemoryProvider(opts: { read: McpMemoryOperation; write?
+@@ -69,8 +73,16 @@ export function createMcpMemoryProvider(opts: { read: McpMemoryOperation; write?
      },
  
      async query(scopeId, q, limit = 20, context) {
 -      const text = await read(scopeId, q, context?.actorId, context?.maxChars);
+-      return text ? text.split("\n").filter(Boolean).slice(0, limit) : [];
 +      const text = await read(scopeId, q, context);
-       return text ? text.split("\n").filter(Boolean).slice(0, limit) : [];
++      let decoded: unknown;
++      try {
++        decoded = JSON.parse(text);
++      } catch {
++        decoded = undefined;
++      }
++      const content = typeof decoded === "string" ? decoded : text;
++      if (!content.trim() || content.trim() === "No matching memory found.") return [];
++      return (typeof decoded === "string" ? [content] : content.split("\n").filter(Boolean)).slice(0, limit);
      },
  
+     read: (scopeId) => read(scopeId, ""),
 diff --git a/src/memory/provider-config.ts b/src/memory/provider-config.ts
 index 64c9b6b5..a83b2331 100644
 --- a/src/memory/provider-config.ts
@@ -222,7 +232,7 @@ index 53017333..cf2d7194 100644
    const inputs: SpecInputs = {
      worktree: "/tmp/worktree",
 diff --git a/test/mcp-memory-provider.test.ts b/test/mcp-memory-provider.test.ts
-index b1c88214..2a76ce6d 100644
+index b1c88214..b2a5f265 100644
 --- a/test/mcp-memory-provider.test.ts
 +++ b/test/mcp-memory-provider.test.ts
 @@ -1,6 +1,7 @@
@@ -233,7 +243,7 @@ index b1c88214..2a76ce6d 100644
  import type { McpClient } from "../src/mcp/mcp-client.ts";
  
  function client(calls: Array<{ tool: string; args: Record<string, unknown> }>, text = "result"): McpClient {
-@@ -67,3 +68,49 @@ test("MCP recall is locally bounded and times out", async () => {
+@@ -67,3 +68,78 @@ test("MCP recall is locally bounded and times out", async () => {
    const timed = createMcpMemoryProvider({ read: { client: hanging, tool: "read", timeoutMs: 10 } });
    await assert.rejects(timed.recall("org:yc"), /timed out after 10ms/);
  });
@@ -282,6 +292,35 @@ index b1c88214..2a76ce6d 100644
 +      { query: "pay", acting_user: "ana@example.com", qm_scope: "personal:ana@example.com" },
 +    ],
 +  );
++});
++
++test("MCP search reports no hits for exact plain and JSON-encoded empty responses", async () => {
++  for (const text of ["", "   ", "No matching memory found.", '""', '"   "', '"No matching memory found."']) {
++    const memory = createMcpMemoryProvider({
++      read: { client: client([], text), tool: "qm_recall", timeoutMs: 100 },
++    });
++    assert.deepEqual(await memory.query("personal:intern", "missing"), [], text);
++  }
++});
++
++test("MCP search preserves real content and decodes JSON strings only once", async () => {
++  const cases: Array<[string, string[]]> = [
++    ["Fact one\nFact two", ["Fact one", "Fact two"]],
++    [JSON.stringify("Fact one\nFact two"), ["Fact one\nFact two"]],
++    [
++      "The document says No matching memory found. but contains a fact",
++      ["The document says No matching memory found. but contains a fact"],
++    ],
++    [JSON.stringify("The document says No matching memory found."), ["The document says No matching memory found."]],
++    [JSON.stringify(JSON.stringify("No matching memory found.")), ['"No matching memory found."']],
++    [JSON.stringify({ fact: "No matching memory found." }), [JSON.stringify({ fact: "No matching memory found." })]],
++  ];
++  for (const [text, expected] of cases) {
++    const memory = createMcpMemoryProvider({
++      read: { client: client([], text), tool: "qm_recall", timeoutMs: 100 },
++    });
++    assert.deepEqual(await memory.query("personal:admin", "fact"), expected);
++  }
 +});
 diff --git a/test/memory-agent-routes.test.ts b/test/memory-agent-routes.test.ts
 index 49807fa2..f30575be 100644
