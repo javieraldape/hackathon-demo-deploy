@@ -10,7 +10,12 @@ require_private "$DEMO_RUNTIME_ROOT/credentials/preview-origin"
 [[ ! -e "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile" ]] || {
   require_private "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile"
 }
-if listening 8188; then echo 'Preview gate port is already occupied' >&2; exit 1; fi
+"$REPO_ROOT/scripts/start" qm >/dev/null
+if listening 8188; then
+  if running qm-preview-gate; then echo 'Preview gate already running'; exit 0; fi
+  echo 'Preview gate port is already occupied' >&2
+  exit 1
+fi
 python3 - "$DEMO_RUNTIME_ROOT/credentials/preview.Caddyfile" "$DEMO_RUNTIME_ROOT/credentials/preview-origin" <<'PY'
 import os
 import pathlib
