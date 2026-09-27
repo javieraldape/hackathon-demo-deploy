@@ -1,0 +1,109 @@
+{
+  "retrieved_at": "2026-09-27T17:48:59.275851+00:00",
+  "source": {
+    "dataset": "respai-lab/orgaccess",
+    "dataset_revision": "c1564174c8f29ff32c78c6f6e27a5fe3ac2ac949",
+    "repository_revision_for_license_and_card": "c65ef95f7a8821098906012c4236a4fcd8144f9b",
+    "rows_api": "https://datasets-server.huggingface.co/rows",
+    "license": "MIT (Hugging Face dataset card metadata)"
+  },
+  "selection": {
+    "rule": "Within each source split, select the first 3 rows of each expected_response class (full, partial, rejected), scanning source row order in pages of 100.",
+    "scanned": {
+      "easy": {
+        "rows_scanned": 100,
+        "source_rows": 40282,
+        "selected_by_decision": {
+          "partial": 3,
+          "rejected": 3,
+          "full": 3
+        }
+      },
+      "medium": {
+        "rows_scanned": 8600,
+        "source_rows": 10073,
+        "selected_by_decision": {
+          "partial": 3,
+          "rejected": 3,
+          "full": 3
+        }
+      },
+      "hard": {
+        "rows_scanned": 400,
+        "source_rows": 20148,
+        "selected_by_decision": {
+          "rejected": 3,
+          "partial": 3,
+          "full": 3
+        }
+      }
+    },
+    "selected_count": 27,
+    "selected_by_split": {
+      "easy": 9,
+      "medium": 9,
+      "hard": 9
+    },
+    "selected_by_decision": {
+      "partial": 9,
+      "rejected": 9,
+      "full": 9
+    },
+    "source_row_content_sha256": {
+      "easy:0": "466d4411867f3b59095f2fac314e926935a9991410cfd3a0f350f63818d066fb",
+      "easy:1": "468f006bbdcf50cf757f2cf5636f66c0a3ab2b082f612eafee57d794084febb6",
+      "easy:2": "d0b89b52b6bc42088eb55489196eed5b34f2246ec87ba28ba8ad65f1bee41f24",
+      "easy:3": "2ff7490f56a2f3f760fcdbfa3f9726dd0c7fa513dbe952adc119e5e88511cf5b",
+      "easy:4": "2263a7918a82900aaa00e9341bf6abec1043ff31ca29bb3dc43121c7fb640fe4",
+      "easy:5": "1301758ff80e5177bcfb2a4caab4f9931425a2c35db24cc98568e92b977d8751",
+      "easy:7": "4ce9b55f9963b6a1a7cea9de6b468e7a1ef35915e916c7b4e5ceb6e5875695a3",
+      "easy:9": "e36b5c35ab5776d4073f502f86508f4637a41aee12a806db17f86229c49eb137",
+      "easy:10": "cd5a18bde2582abf4a46534abafbe437fdea9f655bda8be49c42f2ba984c7091",
+      "medium:0": "a6c9bf337e0aa0a053529f8decb91c00faf0fa52d8a7720c96b11b406c6a9754",
+      "medium:1": "59db167d5519918b9f7f8bd5d3883a8f2751574728cb3dc6d4d9edf713a6339a",
+      "medium:2": "4ae5c8524ee73a49952a3fefe50767eba3457a76acd2f733602e490935e63b65",
+      "medium:4": "79f004e7398ba1ca3361f7bba3f8a6b8c55ddd347d6e6823aa3a6c779bce5e0d",
+      "medium:6": "08ccbee676cef02cd7a11a6f1b1313ac6b7d226d49640f2c78ce9f7e1d31b834",
+      "medium:7": "79f3427971b64cb2047014a7d6b6f148b377061f6cc46818b681258e706d4518",
+      "medium:714": "77d3a609c349718340cf31103c98612c43d2c8aacbb9fbda8a8a8bc296f293c5",
+      "medium:1838": "cb30faa19276119ec5a97400c675f8da10fe97f5ceb85bbf074127b03ee4b03e",
+      "medium:8598": "86f5d99a78b91681b50b7b8647e33bc3380e15a388d12ecb6723abc066face71",
+      "hard:0": "b85c8d36e70450556d7ccbab3ca082d413cb43f070c49b74fecfc8a0b1d773f9",
+      "hard:1": "7e90b65a967f7092124f38f5bdf318f9db374de4e6aa8ee4e0aeea42daad5c32",
+      "hard:2": "c54ce83746b91af237074ea9bd939dd329693cd611de5f371017df509965f4f0",
+      "hard:3": "138caf5f85b18522d018e82bd3949de3e3f5f1f0b2ea9e556bc416d1f2e4a53a",
+      "hard:5": "29ea1e1280da3f93dcab167199a558d4565db8b15c57ebc72c17fdb0e7315018",
+      "hard:12": "02be74ad24465aec86466ed4aab912c9ebcb41a8b1b35000fc138f89a0ab04ee",
+      "hard:194": "c0f20140d9ddd60612f88c56b26b601afdd55a8f359565c966fda4310827776b",
+      "hard:195": "f577359db53a1eed954ab3c8212a4e603ff8ee866bca6c241bce5082baa7d883",
+      "hard:349": "15d7c9dd3ebcd79ee599197a608d68e48f582c6af35216a1becacf0f982b50dd"
+    }
+  },
+  "transformations": [
+    "Separate user role and parsed permissions context (corpus.jsonl), natural-language request (questions.jsonl), and expected decision plus rationale (labels.jsonl).",
+    "Parse the source permissions JSON string into a JSON object; preserve role, query, expected decision, and rationale content otherwise unchanged.",
+    "Synthetic role-permission cases only; not a real-world sensitive-data leak or fact-level privacy benchmark."
+  ],
+  "artifacts": {
+    "corpus.jsonl": {
+      "sha256": "89508f34f28f93687899229014d53d1b6bd0b66ccdd17176ced7c580bfdf0ef3",
+      "bytes": 11882
+    },
+    "questions.jsonl": {
+      "sha256": "fb30b455700cfd0d0bf6c59b03e7e1f7d11eabff7940ca31c4debf8b3846e5ae",
+      "bytes": 12966
+    },
+    "labels.jsonl": {
+      "sha256": "689a4898ca962b3d13eecb0b7590152ddf16014c72145e5d9e72e0a5a9cd3eb6",
+      "bytes": 13854
+    },
+    "source-card.md": {
+      "sha256": "f291ff111d4e7da9de93d266efab4a05a61b7a8566bc99c0dd3da19f54886779",
+      "bytes": 7207
+    },
+    "LICENSE.txt": {
+      "sha256": "dae61f24b22ff3382f8ad186946b35110c607368c24ed05dec0f294ba6704bf2",
+      "bytes": 1066
+    }
+  }
+}

@@ -1,0 +1,108 @@
+Marketplace Listing & Reference Architecture Sync — AP-Northeast
+
+Meeting header:
+Date: 2025-02-12
+Start: 09:30 PST
+Duration: 52 minutes (approx)
+Location: Zoom
+Attendees: Maya Chen (Redwood AE), Arjun Patel (Redwood SE), Lena Ortiz (CloudWave Partnerships), Hiro Tanaka (Cloud Architect, JP), Samir Khan (Security Lead)
+
+Summary (auto): Quick partner sync to align on AWS Marketplace listing requirements, reference architecture for AP-Northeast private deployment, security/KMS constraints, and joint solution assets for a co-listed offering. Plan: draft listing, schedule technical workshop, provide sandbox account, produce CF/Terraform snippets and security documentation.
+
+Topics: marketplace onboarding, AMI vs container listing, licensing & metering options, private VPC reference architecture, KMS/CMK handling, SSO/SCIM for marketplace entitlements, go-to-market assets, benchmark/testing plan.
+
+Transcript:
+[00:00:10] Maya Chen: All right, thanks everybody for joining. Quick roll call — Maya from Redwood, with Arjun on the call.
+[00:00:18] Lena Ortiz: Hey all, Lena here, CloudWave partnerships. Happy to be here.
+[00:00:21] Hiro Tanaka: Hiro — cloud architecture, Tokyo office.
+[00:00:24] Samir Khan: Samir, security.
+[00:00:27] Arjun Patel: Cool, thanks. Agenda is threefold: marketplace listing mechanics, reference arch for ap-northeast private deployments, and security/KMS questions. We'll leave time for Qs.
+[00:00:45] Maya Chen: For context, CloudWave and Redwood want a joint solution in AP-Northeast — the ask from marketing is an AWS Marketplace listing plus a reference architecture doc customers can use. We need to align on technical requirements.
+[00:01:07] Hiro Tanaka: Right, for us the biggest concern is how the offering is deployed — whether it's a SaaS listing (aggregated metering) or an AMI/container listing that customers install into their VPC. Both have different network and security implications.
+[00:01:27] Samir Khan: And from security side, we need clear KMS key usage, audit logs, and separation of customer data. If it’s in-customer VPC we want to ensure CMK policies and no cross-customer data leakage.
+[00:01:45] Maya Chen: Totally, that's why we proposed two parallel artifacts: 1) Marketplace listing copy + SKU matrix, 2) Reference architecture for private deploy (VPC templates + CF/Terraform).
+[00:02:06] Lena Ortiz: One of the GTM asks was to have a <"bring your own license"> and a metered SaaS option if possible. Does Redwood support both?
+[00:02:21] Arjun Patel: We support both patterns. For hosted API we can enable metering via our billing integration (we can discuss entitlements and SAML flows). For AMI/container, marketplace will surface usage differently — often AMI is BYOL or paid via hourly marketplace subscription. There are tradeoffs.
+[00:02:45] Hiro Tanaka: Can you clarify the private deployment pattern? We prefer an option where the inference runtime sits in the customer's VPC (private deployment) with a small control plane connection to Redwood for telemetry. How does network egress work?
+[00:03:04] Arjun Patel: Typical pattern: control plane behind a private outbound-only connection (no inbound), using PrivateLink or egress to an endpoint over TLS. For AP-Northeast we have Terraform modules that provision ENIs and a PrivateLink endpoint. But note, PrivateLink charges apply and NAT gateways may be required for outbound image pulls.
+[00:03:27] Samir Khan: Okay — we need to map cost impact for customers. Also for KMS: can Redwood accept customer-managed CMKs or does Redwood require a service-managed key?
+[00:03:41] Maya Chen: We support both. For Private (VPC) deployments we can use customer-managed CMKs (in their account) and our runtime will be configured to use those keys. For hosted offering, we use a Redwood-managed key unless enterprise config requests BYOK and a dedicated key. Documentation and key policy examples will be provided.
+[00:03:58] Lena Ortiz: That’s great. For the marketplace listing, what assets do you need — screenshots, AMIs, listing text?
+[00:04:08] Maya Chen: Listing asset checklist: 1) Logo PNG/SVG, 2) Short and long description, 3) Architecture diagram (png/pdf), 4) Support/contacts, 5) Pricing SKU table, 6) Security/compliance artifacts (SOC2 summary). We'll draft a starter copy and share.
+[00:04:27] Hiro Tanaka: For AP-Northeast specifically, we need to make sure the AMI/containers are available in ap-northeast-1 with ECR replicated images and proper region permissions. Can Redwood publish ECR images or do we need to provide container images to CloudWave?
+[00:04:44] Arjun Patel: We can push region-replicated ECR images to a partner account or provide an image manifest and CI job to do the replication. For AMI we can publish marketplace AMIs as part of listing; that requires a build pipeline and account setup.
+[00:05:06] Speaker 1: (mumble) — microphone glitch — but to add, consider using an init script that pulls quantized models from s3 with presigned URLs to keep image size small.
+[00:05:21] Maya Chen: Good call. We often package a small runtime and pull model shards at startup. That helps with AMI size and makes updates easier.
+[00:05:30] Lena Ortiz: From partnership perspective, CloudWave wants co-branded collateral. Also, the listing must reference joint support paths — how will incident routing work?
+[00:05:43] Maya Chen: We typically set a joint support matrix: front-line support by CloudWave (customer-facing), Redwood second-line for runtime issues. We'll include contact emails and an escalation SLA in the listing notes.
+[00:06:00] Hiro Tanaka: On networking again — outbound-only vs inbound — if the runtime needs to call back for metrics, do you have a recommended architecture for minimizing attack surface?
+[00:06:12] Arjun Patel: Yes — we prefer outbound-only TLS to a Redwood ingestion endpoint with mTLS optional. Alternatively, use Kinesis or S3 events with signed uploads. For tightest security, customers can configure VPC endpoints to a private telemetry endpoint.
+[00:06:30] Samir Khan: mTLS is preferable. We'll need certificate rotation docs. Also audit logs must include per-tenant request IDs.
+[00:06:40] Arjun Patel: We emit structured logs with request IDs and can integrate with customer CloudWatch or Splunk via Forwarder. We'll include examples.
+[00:06:53] Maya Chen: I want to flag a compliance ask: CloudWave's enterprise customers require SOC2 plus ISO27001 mention. We should include a short compliance pack in the listing assets — redacted certs, controls summary.
+[00:07:06] Lena Ortiz: Yes — that's table stakes. We'll draft the compliance pack list.
+[00:07:12] Hiro Tanaka: For AMI-based listing, what about updates/patching? Customers will want a straightforward upgrade path — e.g., a new AMI/semantic tags and a CloudFormation update.
+[00:07:24] Arjun Patel: We recommend a rolling update via ASG or EKS deployment with image tags. For AMI, customers can use SSM Automation to replace instances. We'll provide CFT examples.
+[00:07:39] Maya Chen: Quick note on metering: if we do SaaS metered usage, Redwood can export metering events to the marketplace, or we can use marketplace meter-sender APIs — we need to decide on which party sends the metering.
+[00:07:55] Lena Ortiz: Who typically owns metering? CloudWave expects Redwood to send usage events for SaaS.
+[00:08:01] Arjun Patel: That's doable — Redwood can call AWS Marketplace Metering API. For BYOL or AMI hourly subscriptions, AWS handles metering. We'll document both models in the SKU matrix.
+[00:08:13] Hiro Tanaka: One more on entitlements: can we integrate SAML/SCIM provisioning so that when a customer purchases via marketplace, they get an entitlement mapped back into our SSO?
+[00:08:25] Maya Chen: Yes — AWS will send entitlement reports; we can map those to SCIM provisioning flows. That requires a small webhook and an entitlement processing service which we can operate or open-source the connector.
+[00:08:39] Samir Khan: Audit trail requirements: we need to capture who in the customer org invoked inference requests. Is it possible to surface upstream principal identity in request metadata?
+[00:08:52] Arjun Patel: We can accept x-forwarded-user headers when passed through a gateway and persist principal_id in logs. For hosted offerings we offer token-level identity. For private deployments, it's up to the customer's ingress to pass that identity.
+[00:09:08] Speaker 2: (crosstalk) — and we need to ensure these headers are signed to avoid spoofing.
+[00:09:13] Arjun Patel: Right — recommend mTLS or an ingress proxy with SPIFFE identities. We'll add reference snippets.
+[00:09:24] Maya Chen: Let's get a quick timeline — Marketing wants a listing draft by mid-February and a technical workshop the following week. Does that align?
+[00:09:34] Lena Ortiz: Yes, mid-Feb is fine for a first draft. We’ll need the listing copy and asset checklist.
+[00:09:40] Hiro Tanaka: We'll prepare the network diagrams and a sandbox account by 2/21.
+[00:09:45] Samir Khan: Security docs by 2/21 as well.
+[00:09:49] Maya Chen: Great. Arjun, can you outline what you'll demo in the technical workshop?
+[00:09:54] Arjun Patel: Sure — demo plan: 1) deploy reference helm chart into a test EKS in ap-northeast-1, 2) show model download flow and KV cache behavior, 3) show telemetry export and request-level logs, 4) run a short perf test to show tail latency and token throughput.
+[00:10:14] Hiro Tanaka: For perf test, we prefer a reproducible locust script or k6 load that we can run in our environment.
+[00:10:21] Arjun Patel: We'll include locust scripts and a Dockerized driver. We'll also share exact instance types used in Redwood benchmarks.
+[00:10:29] Lena Ortiz: Any legal flags for co-marketing? We need a co-marketing agreement and logo guidelines.
+[00:10:35] Maya Chen: We'll get legal to surface a draft MOU; marketing will provide logo use guidelines and co-sell motion details.
+[00:10:43] Speaker 1: Quick question on billing: if customer purchases a private deployment via marketplace, who invoices?
+[00:10:49] Maya Chen: Marketplace can do the billing for subscription-based AMIs. For dedicated/private deployments where there's a contract, usually CloudWave invoices (for professional services) plus Redwood invoices for platform fees if agreed. We'll clarify in the SKU matrix.
+[00:11:05] Hiro Tanaka: On the reference architecture document, can we include example IAM policies for the runtime and for the CI that builds AMIs? That helps our security reviews.
+[00:11:15] Arjun Patel: Yes, we'll add least-privilege IAM snippets for the runtime role, image-builder role, and a sample CMK key policy for BYOK.
+[00:11:26] Samir Khan: Also include a short threat model and mitigation sections around model theft and exfil.
+[00:11:33] Arjun Patel: We'll add a short threat model and suggested mitigations: network controls, secrets management, model encryption at rest with CMKs, and runtime attestation pieces.
+[00:11:45] Maya Chen: Okay let's surface any blockers now — Hiro?
+[00:11:49] Hiro Tanaka: Blocker: we need assurance that images will be replicated and that latency in ap-northeast won't spike with model pulls. Also need clarity on support SLA for P2P private deployments.
+[00:12:00] Arjun Patel: For latency we'll recommend warm caches and pre-pulled model shards. We'll run a short benchmark in ap-northeast as part of the workshop. For SLA, Redwood offers dedicated/support tiers; we'll propose an SLA in the draft partnership doc.
+[00:12:16] Lena Ortiz: From GTM, my ask is to ensure the listing copy emphasizes low-latency AP-JP availability and enterprise security.
+[00:12:25] Maya Chen: Noted. We'll lead the listing draft.
+[00:12:29] Speaker 3: (background) — small clarification on entitlements flow — AWS sends entitlement notifications via reports, but the timing can be delayed. Consider a grace period.
+[00:12:38] Arjun Patel: Yes agree, we'll design the provisioning flow to allow a 24-48 hour reconciliation window and optional manual provisioning for urgent buys.
+[00:12:47] Samir Khan: One more on KMS: rotation policies — if customer rotates CMKs, runtime must pick up the new ARN. How is that handled?
+[00:12:55] Arjun Patel: We recommend using key alias and referencing alias in config. We'll add automation to re-decrypt secrets if alias changes. Also include a small runbook.
+[00:13:08] Maya Chen: Great. We're at 13 minutes in — we still have network and workshop details to cover.
+[00:13:14] Hiro Tanaka: On the workshop, we want to test PrivateLink, Transit Gateway, and an example EKS deployment. Could Redwood provision a temporary test endpoint?
+[00:13:25] Arjun Patel: Yes — we can provision a short-lived PrivateLink endpoint in our partner test account and share connection instructions. We'll need the CloudWave AWS account ID.
+[00:13:36] Lena Ortiz: I'll share that after the call.
+[00:13:39] Maya Chen: Perfect — action items recap: we'll send listing draft and asset checklist; Arjun will prepare CF/Terraform; Hiro will share network diagrams; Samir will send security scope.
+[00:13:54] Speaker 2: (inaudible) — also share a sample SLA.
+[00:13:57] Maya Chen: We'll include a sample SLA in the pack.
+[00:14:01] Arjun Patel: One tiny note on model licensing: if model weights are third-party, ensure redistribution rights in the AMI. We'll include guidance.
+[00:14:11] Hiro Tanaka: Understood.
+[00:14:13] Lena Ortiz: Any competitor risk we should call out? For example, some customers will ask about Databricks or large hyperscalers with integrated marketplaces.
+[00:14:21] Maya Chen: Yes — we'll include a short competitive positioning blurb emphasizing Redwood's performance and unified runtime across deployments.
+[00:14:29] Samir Khan: Are we capturing risk around procurement cycles? Some Japanese enterprises have long procurement lead times.
+[00:14:36] Lena Ortiz: Good point — marketing will note typical timelines and provide procurement checklist.
+[00:14:41] Maya Chen: All right, let's close with next steps and confirm dates. Draft listing by Feb 18, sandbox creds by Feb 21, workshop Feb 24, perf results by Feb 27.
+[00:14:57] Hiro Tanaka: Confirmed.
+[00:14:59] Samir Khan: Confirmed.
+[00:15:01] Lena Ortiz: Thanks everyone.
+[00:15:04] Maya Chen: Thanks all — we'll follow up via email and upload starter assets to shared drive.
+
+(Transcript ends — call recorded at 09:30 PST, duration 52 minutes. Some sections auto-trimmed for brevity.)
+Maya Chen: Draft marketplace listing copy + asset checklist — due 2025-02-18
+Hiro Tanaka: Share VPC peering / Transit Gateway diagram and subnet map — due 2025-02-21
+Arjun Patel: Prepare sample CloudFormation + Terraform snippets for private deployment — due 2025-02-24
+Samir Khan: Send SOC2 scope doc and KMS key policy examples — due 2025-02-21
+Lena Ortiz: Confirm go-to-market launch owner and co-sell contacts — due 2025-02-20
+Redwood to share draft marketplace listing copy and logo requirements by 2025-02-18
+CloudWave to provide AP-Northeast test AWS account credentials and landing zone details by 2025-02-21
+Technical workshop (deep dive networking + KMS) scheduled for 2025-02-24
+SE to run quick benchmark on ap-northeast-1 instance profile and share results by 2025-02-27

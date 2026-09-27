@@ -1,0 +1,30 @@
+{"record_id": "gpt4_2655b836", "question_type": "temporal-reasoning", "question": "What was the first issue I had with my new car after its first service?", "question_date": "2023/04/10 (Mon) 23:07"}
+{"record_id": "gpt4_2487a7cb", "question_type": "temporal-reasoning", "question": "Which event did I attend first, the 'Effective Time Management' workshop or the 'Data Analysis using Python' webinar?", "question_date": "2023/05/28 (Sun) 06:47"}
+{"record_id": "gpt4_76048e76", "question_type": "temporal-reasoning", "question": "Which vehicle did I take care of first in February, the bike or the car?", "question_date": "2023/03/10 (Fri) 23:15"}
+{"record_id": "gpt4_2312f94c", "question_type": "temporal-reasoning", "question": "Which device did I got first, the Samsung Galaxy S22 or the Dell XPS 13?", "question_date": "2023/03/15 (Wed) 03:53"}
+{"record_id": "gpt4_70e84552_abs", "question_type": "temporal-reasoning", "question": "Which task did I complete first, fixing the fence or purchasing three cows from Peter?", "question_date": "2023/05/30 (Tue) 08:08"}
+{"record_id": "gpt4_93159ced_abs", "question_type": "temporal-reasoning", "question": "How long have I been working before I started my current job at Google?", "question_date": "2023/05/23 (Tue) 10:59"}
+{"record_id": "982b5123_abs", "question_type": "temporal-reasoning", "question": "When did I book the Airbnb in Sacramento?", "question_date": "2023/05/25 (Thu) 14:37"}
+{"record_id": "c8090214_abs", "question_type": "temporal-reasoning", "question": "How many days before I bought my iPad did I attend the Holiday Market?", "question_date": "2023/05/27 (Sat) 17:02"}
+{"record_id": "gpt4_c27434e8_abs", "question_type": "temporal-reasoning", "question": "Which project did I start first, the Ferrari model or the Porsche 991 Turbo S model?", "question_date": "2023/05/26 (Fri) 00:18"}
+{"record_id": "gpt4_fe651585_abs", "question_type": "temporal-reasoning", "question": "Who became a parent first, Tom or Alex?", "question_date": "2023/03/17 (Fri) 16:37"}
+{"record_id": "0a995998", "question_type": "multi-session", "question": "How many items of clothing do I need to pick up or return from a store?", "question_date": "2023/02/15 (Wed) 19:47"}
+{"record_id": "6d550036", "question_type": "multi-session", "question": "How many projects have I led or am currently leading?", "question_date": "2023/05/30 (Tue) 04:18"}
+{"record_id": "gpt4_59c863d7", "question_type": "multi-session", "question": "How many model kits have I worked on or bought?", "question_date": "2023/05/30 (Tue) 21:08"}
+{"record_id": "b5ef892d", "question_type": "multi-session", "question": "How many days did I spend on camping trips in the United States this year?", "question_date": "2023/04/29 (Sat) 22:31"}
+{"record_id": "6a1eabeb", "question_type": "knowledge-update", "question": "What was my personal best time in the charity 5K run?", "question_date": "2023/06/01 (Thu) 00:58"}
+{"record_id": "6aeb4375", "question_type": "knowledge-update", "question": "How many Korean restaurants have I tried in my city?", "question_date": "2023/10/08 (Sun) 21:51"}
+{"record_id": "830ce83f", "question_type": "knowledge-update", "question": "Where did Rachel move to after her recent relocation?", "question_date": "2023/06/24 (Sat) 08:50"}
+{"record_id": "852ce960", "question_type": "knowledge-update", "question": "What was the amount I was pre-approved for when I got my mortgage from Wells Fargo?", "question_date": "2023/12/09 (Sat) 11:53"}
+{"record_id": "8a2466db", "question_type": "single-session-preference", "question": "Can you recommend some resources where I can learn more about video editing?", "question_date": "2023/05/24 (Wed) 22:03"}
+{"record_id": "06878be2", "question_type": "single-session-preference", "question": "Can you suggest some accessories that would complement my current photography setup?", "question_date": "2023/05/30 (Tue) 05:04"}
+{"record_id": "75832dbd", "question_type": "single-session-preference", "question": "Can you recommend some recent publications or conferences that I might find interesting?", "question_date": "2023/05/22 (Mon) 14:25"}
+{"record_id": "0edc2aef", "question_type": "single-session-preference", "question": "Can you suggest a hotel for my upcoming trip to Miami?", "question_date": "2023/05/29 (Mon) 16:40"}
+{"record_id": "7161e7e2", "question_type": "single-session-assistant", "question": "I'm checking our previous chat about the shift rotation sheet for GM social media agents. Can you remind me what was the rotation for Admon on a Sunday?", "question_date": "2023/05/26 (Fri) 02:28"}
+{"record_id": "c4f10528", "question_type": "single-session-assistant", "question": "I'm planning to visit Bandung again and I was wondering if you could remind me of the name of that restaurant in Cihampelas Walk that serves a great Nasi Goreng?", "question_date": "2023/05/25 (Thu) 15:43"}
+{"record_id": "89527b6b", "question_type": "single-session-assistant", "question": "I'm going back to our previous conversation about the children's book on dinosaurs. Can you remind me what color was the scaly body of the Plesiosaur in the image?", "question_date": "2023/05/24 (Wed) 21:34"}
+{"record_id": "e9327a54", "question_type": "single-session-assistant", "question": "I'm planning to revisit Orlando. I was wondering if you could remind me of that unique dessert shop with the giant milkshakes we talked about last time?", "question_date": "2023/05/30 (Tue) 09:10"}
+{"record_id": "e47becba", "question_type": "single-session-user", "question": "What degree did I graduate with?", "question_date": "2023/05/23 (Tue) 19:11"}
+{"record_id": "118b2229", "question_type": "single-session-user", "question": "How long is my daily commute to work?", "question_date": "2023/05/30 (Tue) 08:00"}
+{"record_id": "51a45a95", "question_type": "single-session-user", "question": "Where did I redeem a $5 coupon on coffee creamer?", "question_date": "2023/05/30 (Tue) 01:13"}
+{"record_id": "58bf7951", "question_type": "single-session-user", "question": "What play did I attend at the local community theater?", "question_date": "2023/05/30 (Tue) 03:57"}

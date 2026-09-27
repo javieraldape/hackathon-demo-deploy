@@ -1,0 +1,99 @@
+SkyBridge + Redwood: Azure Marketplace packaging & launch sprint
+
+Technical working session to align on Azure Marketplace packaging format (SaaS vs VM/Container), transactable offer configuration, meter & SKU mapping, required artifacts (ARM templates, manifests, logos), and security signoffs. Agreed on a sprint plan to produce marketplace artifacts, staging subscription tests, and a joint launch checklist with co-marketing assets.
+Offer types: SaaS vs VM/Container vs Bring-your-own-subscription
+Metering and SKU mapping for usage billing
+Packaging artifacts: ARM templates, Managed Application manifest, container registry image naming
+SSO and provisioning flow via Azure AD and SCIM
+Security checklist: SOC2, audit logs, KMS/HSM integration
+Launch timeline and co-marketing checklist
+[00:00] Maya Chen: hey everyone, thanks for joining, uh we'll kick off at 2pm pacific, um quick roll call?
+[00:10] Aaron Patel: Aaron here.
+[00:12] Leena Chowdhury: Leena here.
+[00:15] Marco Ruiz: Marco, yep.
+[00:17] Samir Khan: Samir on the call.
+[00:20] Diego Ramos: Diego from Redwood, SE.
+[00:24] Priya Nair: Priya, partner engineering.
+[00:27] Maya Chen: cool thanks. The goal today is to walk through the exact artifacts and a sprint plan to get SkyBridge's offering listed in Azure Marketplace as a transactable SaaS offer and also have a container/VM fallback for air-gapped customers. We want to pin down: manifest, ARM templates, metering SKU mapping, and security signoffs.
+[00:45] Samir Khan: high level sounds good. we did a pre-read, um we have questions around metering and how Redwood expects consumption to be reported back for per-host or per-token billing.
+[00:58] Diego Ramos: yeah right now Redwood's hosted offering emits a usage webhook and you can use the metering API to push usage events. For Azure Marketplace SaaS transactable offers you usually implement the Marketplace metering service or the metering APIs the marketplace provides. We can share an example connector.
+[01:20] Aaron Patel: are there any gotchas with the SKU mapping? cause we have an existing internal SKU: SB-PRO-1000 and then enterprise tiers. We need to know what label goes on the marketplace and how to map to our internal billing.
+[01:34] Priya Nair: typically you create N marketplace SKUs (e.g., dev, pro, enterprise) and map the marketplace plan ID to your backend plan id. Redwood can help by sending a plan_id header to your provisioning webhook so you can create the right tenant. We'll share a mapping example.
+[01:50] Leena Chowdhury: when you say provisioning webhook, is that the same as the onboarding flow that triggers tenant create? We want an automated flow: user purchases, we get their subscription id, create tenant in our control plane, and then provision a private instance on Dedicated if they chose that.
+[02:06] Diego Ramos: correct. For Dedicated or Private customers we recommend a tenant create flow that triggers infra as code — we have examples using ARM templates and Terraform. For Azure specifically, a Managed Application or SaaS offer can pass the subscription ID and aad tenant. You can then run an ARM deployment into their subscription if the customer wants that model.
+[02:28] Marco Ruiz: security question — for dedicated deployments we need to know how credentials are handled. Will the customer's keys be stored by Redwood or do we require customer-managed keys?
+[02:39] Maya Chen: good question. We support both. For Private deployments you can require customer KMS/HSM and Redwood can integrate via sealed keys. For Dedicated we often offer optional CMK where the customer supplies the key in their subscription. We'll send the KMS integration doc.
+[02:55] Samir Khan: ok, timeline? we'd like to be in staging listing in ~3 weeks and public launch in 6 weeks if possible.
+[03:04] Diego Ramos: 3-week staging is doable if we have the artifacts this week: offer manifest, logos, 1024x1024 + thumbnail, ARM templates or container image URL, and the SaaS webhook endpoints.
+[03:18] Aaron Patel: about images — we currently push images to our private ACR. For listing you say container references need to be public? or can we point to a protected ACR?
+[03:28] Priya Nair: for Marketplace packaging we usually recommend a public container registry for the sample image or provide a canonical public image for the marketplace verification. For customers, you can keep the runtime in your private ACR; the marketplace verification step needs to access whatever image is used in the test deployment. If you want to keep it private, we can do a verification run via our partner engineering account using a service principal.
+[03:52] Leena Chowdhury: noted. For the SaaS offer, what does the UI tile require? copy length, screenshots, support url, and refund policy?
+[04:01] Maya Chen: yes exact specs: 1 short description (max 280 chars), 3 screenshots (1280x720 recommended), support email, customer support SLA summary. We'll paste the marketplace tile template.
+[04:15] Samir Khan: security checklist again: SOC2, penetration test, audit logs. We are SOC2 compliant but we need to map control ownership for marketplace. Also Azure asks for an audit trail for provisioning and admin activity.
+[04:31] Diego Ramos: Redwood can provide audit logs for provisioning events and admin flows for offers provisioned through Redwood. For SaaS where SkyBridge handles runtime, you'll provide the audit log links. We'll need evidence of SOC2 or your security questionnaire responses for the marketplace registration.
+[04:47] Marco Ruiz: and SSO flow? We want customers to be able to use Azure AD SSO with SCIM provisioning. How does account linking work when user signs up via marketplace?
+[04:56] Priya Nair: typical flow — marketplace sends subscription payload to your webhook with tenant id and customer email. You create the tenant and issue an onboarding invite. For SSO you can automate SAML/OIDC config provisioning via SCIM. Azure Marketplace also supports provisioning via the User Provisioning / SSO API — we have sample code.
+[05:14] Aaron Patel: thanks. Could you share the sample provisioning webhook payloads?
+[05:18] Maya Chen: yes we'll attach sample payloads in the repo link.
+[05:22] Samir Khan: one more — lead flow, does purchase data flow into our CRM? we want immediate lead contact.
+[05:30] Diego Ramos: purchase notifications can be forwarded via webhook to your CRM or integrated through the marketplace metering and fulfillment reports. If you want a direct lead flow, we recommend the fulfillment webhook route which contains the customer email and subscription details.
+[05:45] Leena Chowdhury: on pricing: we plan to have monthly subscription plus optional metered token billing for overages. How does metering work with Azure?
+[05:56] Priya Nair: Azure marketplace supports metered billing where you push usage events to the Marketplace metering API. You'll need to map usage dimensions to plan SKUs. For token-based overage you can have a separate metered dimension (e.g., tokens_consumed) and send delta usage. Note that marketplace collects aggregated usage and then bills the customer — you need to reconcile.
+[06:20] Aaron Patel: reconciliation — any latency expectations?
+[06:23] Diego Ramos: typically there's a delay of 24-72 hours between usage push and invoice. If you need near-real-time billing for customer UI, keep your own metering and reconcile after the marketplace billing window.
+[06:36] Samir Khan: acceptance tests — what does Azure require for validation prior to publishing?
+[06:41] Maya Chen: there are functional smoke tests and a verification run. For SaaS offers they validate your provisioning, tenant creation, and deletion flows. For VM/container offers they validate ARM deploy. We'll provide a checklist for pass/fail and a test script.
+[06:57] Marco Ruiz: who handles marketplace onboarding? is it Redwood partner eng or SkyBridge?
+[07:03] Priya Nair: it's a joint effort. Redwood will submit the offer on our publisher account if you want Redwood to manage the listing, or you can submit under your publisher account. Many partners prefer Redwood to manage the listing initially while they finish compliance docs.
+[07:19] Samir Khan: we'd like to publish under SkyBridge's publisher account for long term, but Redwood submit to staging for verification if possible.
+[07:27] Maya Chen: that's fine. We'll do staging submits.
+[07:31] Diego Ramos: quick note about telemetry — if you want to show latency/cpu/usage metrics on the tile analytics, you can push metrics to the Redwood console via our ingestion endpoint. But tile analytics on Azure is limited; better to show usage in your own portal.
+[07:50] Leena Chowdhury: ok good. next, internationalization and data residency — we have EU customers who require data residency in EU West. How do we represent regional deployment options on the marketplace listing?
+[08:02] Priya Nair: you can list regions supported in the description and have separate plan SKUs if you charge different prices by data residency. For actual region isolation, dedicate a SaaS deployment or use Azure regions when provisioning with ARM into customer subscription in EU. Make sure you document the flow in the listing FAQs.
+[08:20] Aaron Patel: legal question — refund policy and T&Cs — does Redwood provide a template or do we need our own?
+[08:28] Maya Chen: you should provide your own T&Cs and refund policy. We'll share a sample T&C used by other partners but legal should sign off.
+[08:36] Samir Khan: one thing we ran into before: marketplace requires publisher verification and organization validation. What's the minimum we need to supply?
+[08:44] Diego Ramos: you need an org registration number, support contacts, and proof of identity for the publisher account. If you're publishing under SkyBridge it should be straightforward.
+[08:51] Leena Chowdhury: thanks. can we go through the sprint checklist and owners?
+[08:57] Maya Chen: sure — I'll read items and assign owners.
+[09:00] Maya Chen: Item 1: Provide offer manifest (offer.json) and plan definitions. Owner: SkyBridge (Samir + Leena). Due: 2025-10-10.
+[09:12] Leena Chowdhury: will do.
+[09:14] Maya Chen: Item 2: Provide logos, screenshots, and marketing tile copy. Owner: SkyBridge (Leena). Due: 2025-10-07.
+[09:24] Maya Chen: Item 3: Provisioning webhooks + sample payloads and test accounts. Owner: SkyBridge (Aaron). Due: 2025-10-08.
+[09:33] Aaron Patel: ok.
+[09:35] Maya Chen: Item 4: KMS integration doc and token handling for Dedicated. Owner: Redwood (Priya). Due: 2025-10-06.
+[09:45] Priya Nair: got it, will send doc and example ARM snippet.
+[09:48] Maya Chen: Item 5: Security evidence — SOC2 report and pen test executive summary. Owner: SkyBridge (Marco). Due: 2025-10-09.
+[09:58] Marco Ruiz: yes we'll share redacted reports.
+[10:01] Maya Chen: Item 6: Staging verification runs — Redwood to run verification. Owner: Redwood (Diego). Due: 2025-10-17.
+[10:12] Diego Ramos: will schedule and share run notes.
+[10:15] Maya Chen: Item 7: Co-marketing assets & launch PR draft. Owner: Joint (Leena + Maya). Due: 2025-10-24.
+[10:27] Samir Khan: that timeline fits our 6-week target if we hit these dates.
+[10:33] Aaron Patel: can we confirm contact for verification if the image needs to be pulled from private ACR?
+[10:38] Priya Nair: we'll provide a service principal with Reader+Pull role; request via the secure share link. We'll provide steps in the runbook.
+[10:47] Leena Chowdhury: any blockers on Redwood side?
+[10:50] Diego Ramos: none besides the artifacts. If SkyBridge provides the manifest and webhooks by 10/10 we'll start staging submit that week.
+[10:58] Marco Ruiz: small question — for Dedicated deployments, does Redwood require outbound internet access for kernel updates? Our secure customers often disallow egress.
+[11:07] Priya Nair: we support air-gapped packages for on-prem, but for Dedicated in customer subscription you can restrict egress. We'll work with your infra team to provide an offline bundle (container images + dependency tarball) and a runbook for offline install. That will add to the verification checklist.
+[11:25] Maya Chen: okay i'm going to recap next steps, owners and due dates.
+[11:30] Maya Chen: recap: Samir & Leena — manifest + plans due 10/10; Leena — marketing assets due 10/07; Aaron — webhooks & test accounts due 10/08; Marco — SOC2 & pen test summary due 10/09; Priya — KMS integration doc due 10/06; Diego — staging verification due 10/17; Joint — co-marketing assets due 10/24. Redwood will submit to staging using Redwood partner publisher unless SkyBridge requests otherwise.
+[11:52] Samir Khan: sounds good. I'll flag this in our tracker and assign engineers.
+[11:56] Leena Chowdhury: we'll upload initial artifacts to the shared repo by EOD Monday.
+[11:59] Maya Chen: perfect. Any final questions?
+[12:02] Aaron Patel: none from me.
+[12:04] Marco Ruiz: no.
+[12:05] Diego Ramos: one last note— we'll include a small sample Node-based webhook listener to help decode the marketplace payload; look for it in the repo.
+[12:12] Maya Chen: awesome. thanks everyone, we'll follow up with PRs and the runbook links. meeting adjourned.
+[54:30] (end of recording)
+
+Samir Khan: draft offer manifest (offer.json) and plan definitions; due 2025-10-10
+Leena Chowdhury: provide logos, screenshots and tile copy; due 2025-10-07
+Aaron Patel: implement provisioning webhook endpoint and provide test accounts; due 2025-10-08
+Marco Ruiz: redact and share SOC2 report and pen test summary; due 2025-10-09
+Priya Nair (Redwood): produce KMS/HSM integration doc and ARM snippet; due 2025-10-06
+Diego Ramos (Redwood): run staging verification and publish run notes; due 2025-10-17
+Leena & Maya: co-draft co-marketing PR and assets; due 2025-10-24
+Redwood to submit staging offer after artifacts received (owner: Maya/Diego)
+SkyBridge to upload manifest and plans to shared repo by 2025-10-10
+Redwood to share KMS integration runbook by 2025-10-06
+Schedule staging verification window 2025-10-17 (Redwood leads)
