@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+import json
+import urllib.parse
+import urllib.request
+
+
+BEGIN = "<!-- hackathon-shared-brain:start -->"
+END = "<!-- hackathon-shared-brain:end -->"
+POLICY = """## Shared hackathon brain
+
+The shared GBrain connected as `hackathon-gbrain` is the source of truth for requests about "the brain", GBrain, memories saved by the Telegram/OpenClaw bot, the last thing saved to the brain, and GBrain fact IDs. This is separate from QM's built-in `memory` notebook. The built-in notebook contains QM-local preferences and onboarding notes; its bullets are not GBrain facts and their positions are never fact IDs.
+
+For these shared-brain requests, call `hackathon-gbrain_recall` before answering, even if the local notebook or conversation contains a plausible answer. For the latest saved item, recall recent facts without an entity or page filter and use the returned timestamps and provenance. For "fact #N", recall facts and match the returned `id` or `fact_id` exactly; never count bullets or search-result positions. A fact can exist without an entity or named page. Report its GBrain fact ID and text without inventing a page.
+
+Read recall's JSON response directly: `facts` is an array of saved fact records, `id` is the numeric identifier, `fact_id` is its string form, and `fact` is the saved text. Match either identifier to the requested number and quote that record's `fact` field. A matching record in `facts` is a successful retrieval even when `entity_slug` is null or the separate page-search `results` field is absent or empty. Do not claim a fact is missing when a matching record was returned. The `total`, `budget_used`, and `dropped_count` fields are counts, not fact identifiers.
+
+For page lookups, use recall's `query` field. For a known exact text fragment, use `grep` to filter facts. `since`, if needed, must be an ISO timestamp or a supported duration such as "2 hours ago", not "today". If the requested fact is not in the returned results, say so rather than substituting a different memory. If the shared-brain tool is unavailable or errors, explicitly report that the shared brain could not be checked; never silently fall back to the built-in notebook.
+
+This QM connection is read-only. Do not claim a QM-local notebook write saved something to shared GBrain. Shared-brain writes currently go through the Telegram/OpenClaw agent; confirm persistence only from a successful tool receipt. Unrelated QM-local preferences can still use the built-in memory tool.
+"""
+
+
+def merge_policy(current, policy):
+    if current.count(BEGIN) != current.count(END) or current.count(BEGIN) > 1:
+        raise ValueError("Shared-brain policy markers are inconsistent; review the org instructions")
+    block = f"{BEGIN}\n{policy.strip()}\n{END}"
+    if BEGIN not in current:
+        return current.rstrip() + "\n\n" + block
+    start = current.index(BEGIN)
+    end = current.index(END)
+    if end < start:
+        raise ValueError("Shared-brain policy markers are reversed")
+    return current[:start] + block + current[end + len(END):]
+
+
+def request(path, body=None):
+    base = "http://localhost:8129"
+    req = urllib.request.Request(
+        base + path,
+        data=json.dumps(body).encode() if body is not None else None,
+        method="PUT" if body is not None else "GET",
+        headers={"Content-Type": "application/json", "Origin": base},
+    )
+    with urllib.request.urlopen(req, timeout=30) as response:
+        return json.load(response)
+
+
+def main():
+    identity = request("/admin/api/whoami")
+    if not identity.get("isAdmin"):
+        raise SystemExit("QM local identity is not an administrator")
+    path = "/admin/api/scopes/" + urllib.parse.quote("org:" + identity["org"], safe="")
+    before = request(path)
+    content = merge_policy(before.get("soul") or "", POLICY)
+    if content == before.get("soul"):
+        print("QM shared-brain routing already configured")
+        return
+    request(path + "/soul", {"content": content, "expectedVersion": before["soulVersion"]})
+    after = request(path)
+    if after.get("soul") != content:
+        raise SystemExit("QM shared-brain policy verification failed")
+    print("QM shared-brain routing configured; existing org instructions preserved")
+
+
+if __name__ == "__main__":
+    main()

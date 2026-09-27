@@ -1,0 +1,606 @@
+{
+  "release": "v1.0.0",
+  "labels_sha256": "ce646d919b7906169d4d81cca90d10ddab615cb20535fd2bc36c3973e65d5e07",
+  "documents": [
+    {
+      "path": "corpus/gmail/dsid_00fc9b5bd28749b89d599eb7c9543938__20270503-aws-channel-intro-and-joint-account-agenda.txt",
+      "doc_id": "dsid_00fc9b5bd28749b89d599eb7c9543938",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "3a0048778a1d62538ee89ff578f6672fc4e5627ad3d85295a40a952a0e62260e"
+    },
+    {
+      "path": "corpus/gmail/dsid_0143e9837293420887eb06470fabaf32__20260911-azure-marketplace-private-offer-initial-legal-markup.txt",
+      "doc_id": "dsid_0143e9837293420887eb06470fabaf32",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "f91da4ced535df16aa5b016001d2385f75b828ca1e076bb6f81e20b9b373bf3a"
+    },
+    {
+      "path": "corpus/gmail/dsid_017ff03add114469b95394d3acd1a1a9__20270610-buyer-signoff-staggered-terms-and-evidence-request.txt",
+      "doc_id": "dsid_017ff03add114469b95394d3acd1a1a9",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "3c2b28dfec46b7626129cf66e8513d036acd97089f5757d79d0d3ddb3cb5f039"
+    },
+    {
+      "path": "corpus/gmail/dsid_0315836f95d54e909f45f4a1b6a5d364__20261104-listing-copy-co-sell-collab-kickoff.txt",
+      "doc_id": "dsid_0315836f95d54e909f45f4a1b6a5d364",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "e066dbfd5a1db1474380a6529ac8354311bb999a8a0b20fbb94c596fb6b23996"
+    },
+    {
+      "path": "corpus/gmail/dsid_0399e83852794144bb21131f05b262a7__20261220-ecosystem-integration-executive-summary-for-publishers.txt",
+      "doc_id": "dsid_0399e83852794144bb21131f05b262a7",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "1644d201469ece07c0d2290ec98be752ecb121981457f0f0e263e6505df3ad9c"
+    },
+    {
+      "path": "corpus/gmail/dsid_04e642fbf36840039e8e8d3b32fc681a__20261110-cppo-reseller-demo-quota-escalation-pmo.txt",
+      "doc_id": "dsid_04e642fbf36840039e8e8d3b32fc681a",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "ac6978111fede9816b68cc2331699644b1a9423a845f95efe910e82c7b5f0e4f"
+    },
+    {
+      "path": "corpus/gmail/dsid_05ffa944ec154fbabfe6b0e9e437cbe2__20270214-cloudwave-procurement-vendor-steps-for-marketplace-listing.txt",
+      "doc_id": "dsid_05ffa944ec154fbabfe6b0e9e437cbe2",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "7bd7d1bcd86b2b1edf93acb7c5987296d58a8e36b9debf19a7c5c801186ff465"
+    },
+    {
+      "path": "corpus/gmail/dsid_064e74c587c74adfa356eac60d164795__20270523-cloud-listing-inbound-call-booking-and-timezone-check.txt",
+      "doc_id": "dsid_064e74c587c74adfa356eac60d164795",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "7796a886e30ec3e0cddf26c2a8d01fd78b11968e7290a93d2038ee9bc533966e"
+    },
+    {
+      "path": "corpus/gmail/dsid_067d8744b6994be182e490f6e569581b__20260902-aws-marketplace-po-price-qualification.txt",
+      "doc_id": "dsid_067d8744b6994be182e490f6e569581b",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "bb18e6000c92e14f1c8084aabc8a4aaa28077fb4df3454d78a120cb3ab3a5541"
+    },
+    {
+      "path": "corpus/gmail/dsid_07a1583fe7044ef3a76f914c1395ac02__20270220-azure-marketplace-renewal-ops-checklist.txt",
+      "doc_id": "dsid_07a1583fe7044ef3a76f914c1395ac02",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "1bb5b3cf0f2508e251320bdccf83ba13dcfbb2193a7e53feb54bf8339ace1596"
+    },
+    {
+      "path": "corpus/gmail/dsid_09d4bc3e8cec4814a7f0c197015d1206__20270418-helios-gsi-marketplace-deep-dive-scheduling.txt",
+      "doc_id": "dsid_09d4bc3e8cec4814a7f0c197015d1206",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "2f7b86d4e9405cd0944be82303c565906389ae21cf5c32a1d7484e338b74a5d8"
+    },
+    {
+      "path": "corpus/gmail/dsid_0b952cab38cd46628cd5d6b79f32a4a5__20261201-datawave-privoffer-floor-revshare-adjudication.txt",
+      "doc_id": "dsid_0b952cab38cd46628cd5d6b79f32a4a5",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "0a5494a00c85069deb90e1db0489aadc391f8752de7be2ed5dab1be6bfcb2d0e"
+    },
+    {
+      "path": "corpus/gmail/dsid_0d3aa28749174f2fb535ac6b1fe8ed9d__20270224-azure-publisher-portal-terms-assessment.txt",
+      "doc_id": "dsid_0d3aa28749174f2fb535ac6b1fe8ed9d",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "3977197d269d6e2f0ab45487e2bb801e6d5f21c50c26a5e00ce95b1409b6de57"
+    },
+    {
+      "path": "corpus/gmail/dsid_0ea2e57927844f289cbcd6ad569c4897__20270803-azure-marketplace-activation-po-routing.txt",
+      "doc_id": "dsid_0ea2e57927844f289cbcd6ad569c4897",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "1e66f8221738c5dfe801a36adac6c01cbe6ed1cc30a494996164c10639a6d5a0"
+    },
+    {
+      "path": "corpus/gmail/dsid_0f52bb34774049bcbf488522404a8391__20261127-contract-orchestration-onboarding.txt",
+      "doc_id": "dsid_0f52bb34774049bcbf488522404a8391",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "a4165c862978692ced5fff87273119131c0447cb653bb2fae6522664bfd19798"
+    },
+    {
+      "path": "corpus/gmail/dsid_0f7ca4a4fcc34d908cff2a42e1cb2449__20270518-gcp-marketplace-term-sync-and-staggered-invoicing-plan.txt",
+      "doc_id": "dsid_0f7ca4a4fcc34d908cff2a42e1cb2449",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "74592b5dcc0d7cdd49c9adb473c5f76e83aba9a62d1a9c37d567f7e0a7bd7bf4"
+    },
+    {
+      "path": "corpus/gmail/dsid_10558b0028c3440ab9ecc35e142c0b2d__20250411-aws-po-zenithpilot-approval-stages-and-term-options.txt",
+      "doc_id": "dsid_10558b0028c3440ab9ecc35e142c0b2d",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "5df20e3bdad23d4b9b59d2f05cd227a7f3517b8f26e629805c0762944f54fff5"
+    },
+    {
+      "path": "corpus/gmail/dsid_105e43a440ef43bb84bf2a2ae0337d5d__20280714-marketplace-data-locality-lifecycle-accountability-qa.txt",
+      "doc_id": "dsid_105e43a440ef43bb84bf2a2ae0337d5d",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "5e2f16196988e23ae7e85717c658de3cc56162fdb0f77472b558d44d690c25c0"
+    },
+    {
+      "path": "corpus/gmail/dsid_107fae23551d42018aaae7973adce543__20270411-telemetry-processor-onboarding-qa.txt",
+      "doc_id": "dsid_107fae23551d42018aaae7973adce543",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "e0e723b4076885104bfb3b5bdb12ad53b3d8f8624f306b55cdb15c03bdc48c6a"
+    },
+    {
+      "path": "corpus/gmail/dsid_10c0ab6e12cc44429fb7a9e5d721f1c2__20270625-nimblr-co-sell-concession-approval-thread.txt",
+      "doc_id": "dsid_10c0ab6e12cc44429fb7a9e5d721f1c2",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "53259c32bb8e49379593ae68a732d1b82290ac8dd90523a9efc09dcb86e86ee1"
+    },
+    {
+      "path": "corpus/gmail/dsid_10dcbcc1630c4c63ab2ed0857f594fa6__20260630-platform-fee-vat-treatment-invoice-adjust.txt",
+      "doc_id": "dsid_10dcbcc1630c4c63ab2ed0857f594fa6",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "d2fd926babbdd14b365385310855adf00b92fcc8b19bb5eeb67a494c0d75f645"
+    },
+    {
+      "path": "corpus/gmail/dsid_10e4097c91584b0db0f23b459323a2e2__20280411-azure-pc-account-crosswalk-seller-mapping-contoso.txt",
+      "doc_id": "dsid_10e4097c91584b0db0f23b459323a2e2",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "e561d19f0c484119d8c85f8448f4047bcc1a11cdf912102d2514d62579970144"
+    },
+    {
+      "path": "corpus/gmail/dsid_1469e81c1ea44412b87f56022f90cd20__20270322-annual-trueup-makeup-schedule-and-credit-timing.txt",
+      "doc_id": "dsid_1469e81c1ea44412b87f56022f90cd20",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "4a47db70f8d6d0058d87c77589a1658a579c6a5ec9937aefc536af19cace8d95"
+    },
+    {
+      "path": "corpus/gmail/dsid_1540f4df0b5a4a8da9118f848a6a6090__20270508-preflight-vendor-activation-po-sprint-plan.txt",
+      "doc_id": "dsid_1540f4df0b5a4a8da9118f848a6a6090",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "e6ec890b7df0d19a8b9bab04dd1ca2c6ed4484c4eb3b8bdd31894285995e6aeb"
+    },
+    {
+      "path": "corpus/gmail/dsid_1549b516e62245fe97fda0db82a5a611__20280118-aws-marketplace-korelia-intro-joint-account-playbook.txt",
+      "doc_id": "dsid_1549b516e62245fe97fda0db82a5a611",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "cdfe12bae558e55bd66c0b54975ab46f57b54b861d55f0ad03cf442d6b4a6dfd"
+    },
+    {
+      "path": "corpus/gmail/dsid_16d370f4a59049f99e6863364c3b480a__20261116-purchase-order-prereqs-eu-vat-entitlement.txt",
+      "doc_id": "dsid_16d370f4a59049f99e6863364c3b480a",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "20400df915b8bd595ca18f4f02b79537aa67cbd1b0ad5d5b60f3aefa723f03c5"
+    },
+    {
+      "path": "corpus/gmail/dsid_17559d061e564ae4990ef3d364f9a896__20261105-cloudport-trial-to-demo-booking-path.txt",
+      "doc_id": "dsid_17559d061e564ae4990ef3d364f9a896",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "6349c9e5aefa7871ab4f6278c30c8f12e4273a616711f3c0ecd3996f4ac19b54"
+    },
+    {
+      "path": "corpus/gmail/dsid_1de2760b663c429ea06b7d9cab13e817__20261022-negotiator-onboarding-cloud-listing-fee-renegotiation.txt",
+      "doc_id": "dsid_1de2760b663c429ea06b7d9cab13e817",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "ae34a2cd8ac8d3ee34f029083b3341e192f282d6e54184c3be308176f15f332d"
+    },
+    {
+      "path": "corpus/gmail/dsid_1f0e01e380734fe2b0578d04e5dd1662__20260220-acme-marketplace-testimonial-request.txt",
+      "doc_id": "dsid_1f0e01e380734fe2b0578d04e5dd1662",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "a1964927dcb707804c4913d144badb7165417d6689bcd9f176e1f7e2ee5998a2"
+    },
+    {
+      "path": "corpus/gmail/dsid_1ff15205473348ffbbb0f9d6e389e79d__20260711-gcp-purchase-approval-and-seller-intake-lane.txt",
+      "doc_id": "dsid_1ff15205473348ffbbb0f9d6e389e79d",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "0ec6d8ef8eb6a2953ecb20b7dd09bf8c1d6b4d28e95bf1b8e3d9e8c55be46c47"
+    },
+    {
+      "path": "corpus/gmail/dsid_2265feb8fbdd428e8ea2bb4220da6bfa__20260919-cloud-marketplace-usage-bands-and-reseller-fee-clarify.txt",
+      "doc_id": "dsid_2265feb8fbdd428e8ea2bb4220da6bfa",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "54e6a96de47efd9b017c44b00321fe8ade23257a310f3c5940afb650fe8fd3a3"
+    },
+    {
+      "path": "corpus/gmail/dsid_242a846ca9724e1382263902c71f7d88__20261129-marketplace-invoice-cadence-co-sell-checklist.txt",
+      "doc_id": "dsid_242a846ca9724e1382263902c71f7d88",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "05678f82b3a3a712e771981cbca8689d545c6ff9dc758009ec7962f2864c212b"
+    },
+    {
+      "path": "corpus/gmail/dsid_2726d43b007341c8b50910ef72d62d31__20260318-asterion-annualization-marketplace-onramp.txt",
+      "doc_id": "dsid_2726d43b007341c8b50910ef72d62d31",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "dc0d4194113ff344543c4f40ba0ab4dee71d03f0fb06991021dc693da393391d"
+    },
+    {
+      "path": "corpus/gmail/dsid_28261129fb4542f9b706e2f3ae930c8a__20270715-okr-variance-adjudication-appeal.txt",
+      "doc_id": "dsid_28261129fb4542f9b706e2f3ae930c8a",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "f0d24656f91f5f4555d98e912db4ca56a37bdf2227b1050b91b4b09d03fca0c6"
+    },
+    {
+      "path": "corpus/gmail/dsid_85deb10a652742baaf28af6149600001__20250803-license-offsets-and-migration-incentive.txt",
+      "doc_id": "dsid_85deb10a652742baaf28af6149600001",
+      "archive": "gmail_slice_0001.zip",
+      "sha256": "a97efe0cf638e5acf434c2ff5e0699743e2d3f6a36f70db265ca338475f4f971"
+    },
+    {
+      "path": "corpus/slack/dsid_0152a7d392e94a53957c6fda7ab8a972__2076543210-partner-funding-split-integration-runbook.txt",
+      "doc_id": "dsid_0152a7d392e94a53957c6fda7ab8a972",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "3e0160b739dab23354281438327ac8b793d9fae995c92038a570e0dcbfe86cde"
+    },
+    {
+      "path": "corpus/slack/dsid_0462511de735454498fc21cb0d0906d8__3001234567-lighthouse-co-sell-handoff-brief.txt",
+      "doc_id": "dsid_0462511de735454498fc21cb0d0906d8",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "ef13c3bb535afde460b006ebdf0dd2f01347bbb18a185be6bb780e35a0cebf2f"
+    },
+    {
+      "path": "corpus/slack/dsid_04dca3e2f4164b589ad5be0b53a79689__1861239999-marketplace-aliasing-b200-mini-gaudi-patch-sync.txt",
+      "doc_id": "dsid_04dca3e2f4164b589ad5be0b53a79689",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "005f3e98d104fe13596dd443fe48f84fe83c974c23195a5ee4829bc9e661974e"
+    },
+    {
+      "path": "corpus/slack/dsid_06021adc756d419aaa1115afb36fe387__2754321987-private-offer-hw-si-orchestration-checklist.txt",
+      "doc_id": "dsid_06021adc756d419aaa1115afb36fe387",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "d6e4c51ecb58ac27d577824cc7c3b8e600b291c5d8d97d86040b762c5705f155"
+    },
+    {
+      "path": "corpus/slack/dsid_06530d765444410cb149aa7da5bd302b__1764801234-webinar-topic-abstracts-speaker-ops.txt",
+      "doc_id": "dsid_06530d765444410cb149aa7da5bd302b",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "c62e5478338c27a83fb75e9dfb4d90ee1420b300bf51de1ec1a5188906c6f938"
+    },
+    {
+      "path": "corpus/slack/dsid_07cbe341d9f3413fa5c33e9b370d6121__1805009876-cloudbridge-launch-webinar-and-marketplace-routing.txt",
+      "doc_id": "dsid_07cbe341d9f3413fa5c33e9b370d6121",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "4064a111e1e4955a4616188d3fe72826b690c8f26bfde95a19e72fab8fea5a4e"
+    },
+    {
+      "path": "corpus/slack/dsid_0cf0184b2db7402f8472dcd739f4b563__4987654322-polaris-integration-evidence-flow.txt",
+      "doc_id": "dsid_0cf0184b2db7402f8472dcd739f4b563",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "0c5f71311579223b7532f14f317317f879c9dd6534952211e174bea13188c5cd"
+    },
+    {
+      "path": "corpus/slack/dsid_0d6c32ed91e94276a425369b40ae9fea__1719004321-gaudi-mi300-slotting-and-si-readiness-check.txt",
+      "doc_id": "dsid_0d6c32ed91e94276a425369b40ae9fea",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "cd6818f7cda85187761059fe836e67f8f80b3d9db41ead412b4a7e8fe3a424a7"
+    },
+    {
+      "path": "corpus/slack/dsid_0d8bb8acd16d41c6a2f445c34214db13__2101234567-customer-uptick-triggered-topups-marketplace-sla-harmonization.txt",
+      "doc_id": "dsid_0d8bb8acd16d41c6a2f445c34214db13",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "bf7597d8cb692dc4aefe83799dcf7128e5e71d2349549b81331309eb0d4fc1a4"
+    },
+    {
+      "path": "corpus/slack/dsid_1264200e635e4853baafa345fcb5e5c0__2612345000-gateway-adapter-preflight.txt",
+      "doc_id": "dsid_1264200e635e4853baafa345fcb5e5c0",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "aa198b70c81b7ed957631a67a0d059389aa9c1b90b1e9577114414b6af71739a"
+    },
+    {
+      "path": "corpus/slack/dsid_148f83a5cdac44eca5304421f2f52206__1739000000-neptune-stack-harmonize-operations.txt",
+      "doc_id": "dsid_148f83a5cdac44eca5304421f2f52206",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "be6f3afc013ae70e0533c7a92de41f949556ea785dc047c45a2a17e58c91fc6b"
+    },
+    {
+      "path": "corpus/slack/dsid_1592cbef951245439422e0b972e96712__2791234567-partner-bento-quickstart-sync.txt",
+      "doc_id": "dsid_1592cbef951245439422e0b972e96712",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "62ecce48e8616c8db8ef2c1cfe9ddabb5034554f1e93464fa626cdd5918fd616"
+    },
+    {
+      "path": "corpus/slack/dsid_163e1afdc9eb44a9b9e6cddbe5afc1c3__2823456789-si-reserve-family-map-play.txt",
+      "doc_id": "dsid_163e1afdc9eb44a9b9e6cddbe5afc1c3",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "574d89a5b5296c4133ea3bff20bf65bfcad2ef004f32f73c32433112fa2a6555"
+    },
+    {
+      "path": "corpus/slack/dsid_18fdb67439d44335a1154b0586e5665a__2141598765-brand-lockup-marketplace-tile-readycheck.txt",
+      "doc_id": "dsid_18fdb67439d44335a1154b0586e5665a",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "2b5faf1ceb6f76ac56544b536cbc34a292630bb7695317e52c0f2b84a886422f"
+    },
+    {
+      "path": "corpus/slack/dsid_19cdf34b79304a93bc2f125127da81fa__1802501234-marketplace-integration-sprint-ops-checkin.txt",
+      "doc_id": "dsid_19cdf34b79304a93bc2f125127da81fa",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "0c504b537acd5c1e2fed0c06815174c7652175ffd8f3115bcb14b4de0df5f444"
+    },
+    {
+      "path": "corpus/slack/dsid_1a29ec21d3f34a9b868abd5e75493acc__1709456789-integrator-routing-weekly-rotation.txt",
+      "doc_id": "dsid_1a29ec21d3f34a9b868abd5e75493acc",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "25d66ea31159881399b5e3dd10811501c50e412a278e926505c5711714a70965"
+    },
+    {
+      "path": "corpus/slack/dsid_1b16541748f548348e1e4960095ee22f__1780123456-cloudcon-edge-showcase-runbook-and-run-order.txt",
+      "doc_id": "dsid_1b16541748f548348e1e4960095ee22f",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "5568d22aab43f5a9972a899202270ac0358ebd433e21f872eefe9129beec0c04"
+    },
+    {
+      "path": "corpus/slack/dsid_1e682a0e29b44b059cf766dfd8e09b8b__2365007777-apac-reserve-gap-partner-manifest-stagger.txt",
+      "doc_id": "dsid_1e682a0e29b44b059cf766dfd8e09b8b",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "76c4f7079a1fa3b3ccd46e6353458ab247f607bf64d875ae5de43ca444f6338e"
+    },
+    {
+      "path": "corpus/slack/dsid_1f21f8a2d88b485a855f852e468034be__1719504321-onboarding-window-reset-due-to-pallet-labels.txt",
+      "doc_id": "dsid_1f21f8a2d88b485a855f852e468034be",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "fde07e51a291dbcec7b9bd0410bf308d43df3aed14712c88502a47b14d8ff04a"
+    },
+    {
+      "path": "corpus/slack/dsid_1f45a1838c644ad6ae243d7fc7ca3e23__4632102222-marketplace-quota-proration-and-sla-runbook.txt",
+      "doc_id": "dsid_1f45a1838c644ad6ae243d7fc7ca3e23",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "c0a6252a7f0c5ce617b255769c53c8b9c446e5d657a2705d32674f3ab4c6ef0c"
+    },
+    {
+      "path": "corpus/slack/dsid_1fed129a8ceb40dea309dfce9b4a0f0d__1761239999-cp-nova-packaging-and-ops-lab.txt",
+      "doc_id": "dsid_1fed129a8ceb40dea309dfce9b4a0f0d",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "d7ec00f32a8980f85d839a15aed44f27354a417dc0cb3bd2a4e3a8e7d91b365a"
+    },
+    {
+      "path": "corpus/slack/dsid_20b8c0f4d30344d1b4807aec1231d36e__4777000000-anchoredge-channelone-seed-staircase.txt",
+      "doc_id": "dsid_20b8c0f4d30344d1b4807aec1231d36e",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "0961f44e9796ff1aafa491b14ea51600c1254a53e4b106219db1ded98ecbb94c"
+    },
+    {
+      "path": "corpus/slack/dsid_27c0e855489d469d8d4a91c52f04bac3__1759004321-ledgerly-gcp-marketplace-renewal.txt",
+      "doc_id": "dsid_27c0e855489d469d8d4a91c52f04bac3",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "ab0a728c3ed35c18240e3d0993ef08639446e5cc77ad876d6cd9368939089cf7"
+    },
+    {
+      "path": "corpus/slack/dsid_29561ba0e46244f889387cd580edf93b__1923456789-apac-se4-sku-entitlement-handoff.txt",
+      "doc_id": "dsid_29561ba0e46244f889387cd580edf93b",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "b3a09f721c3ee598e3a7513b763ec4c3d4fef9c6b222ace694467c443770cd3b"
+    },
+    {
+      "path": "corpus/slack/dsid_2d088588173a4d2da82d4605c4ebf5f4__1771240001-llamaindex-marketplace-preflight.txt",
+      "doc_id": "dsid_2d088588173a4d2da82d4605c4ebf5f4",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "af626968a9ddce21d74ed05a1d0f866cbc60252638209348bc08bb19322a9802"
+    },
+    {
+      "path": "corpus/slack/dsid_2e5bd3dfbfa5482d9df47519d898a9d5__1819999999-marketplace-gTM-launch-wk-plan.txt",
+      "doc_id": "dsid_2e5bd3dfbfa5482d9df47519d898a9d5",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "7f99acd52f4aecb53792cb4867e752a3a87084f26b9be6f6cae9e283936c7d5a"
+    },
+    {
+      "path": "corpus/slack/dsid_2ecf8a015c434246afac0ddc6037f267__3976543210-bluecrest-marketplace-royalties-and-embargo.txt",
+      "doc_id": "dsid_2ecf8a015c434246afac0ddc6037f267",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "b2c5f1ff4a0b681ef6135570973570b19438939b7718447b494f4a7a91b05643"
+    },
+    {
+      "path": "corpus/slack/dsid_2f3e502e50c74393a3764066656d0a92__1739999999-eflow-portal-authz-timeout-blocker.txt",
+      "doc_id": "dsid_2f3e502e50c74393a3764066656d0a92",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "aadcb53d8e35a2ac505fb5fb740693c3a870b356311b61339758612e7c998858"
+    },
+    {
+      "path": "corpus/slack/dsid_305a08652aa5497bbfe0d38698b93b91__1809990000-ecosys-conclave-demo-and-swag-logistics.txt",
+      "doc_id": "dsid_305a08652aa5497bbfe0d38698b93b91",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "c94846a57cb4d882d835286060813a540e0cac8b5719ced536a1348d7410ac85"
+    },
+    {
+      "path": "corpus/slack/dsid_33749ddf48b54d3684fc64c967398a25__1745554321-ciphergate-kms-saml-scim-marketplace-onboard-sync.txt",
+      "doc_id": "dsid_33749ddf48b54d3684fc64c967398a25",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "a712e96379df63311caf4c213950c37d89f511ac721ea2715c0360db5b749a65"
+    },
+    {
+      "path": "corpus/slack/dsid_3670984402da4d5989803edf8971e18a__1772469130-cobaltedge-preview-onboard.txt",
+      "doc_id": "dsid_3670984402da4d5989803edf8971e18a",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "7cd79cd56819221dfa508f232652085810edf8df21fc86c379d41a33c4e6ad74"
+    },
+    {
+      "path": "corpus/slack/dsid_37b7703caa1d49f29420968d956623c5__2110000000-mini-marketplace-quickstart-kickoff.txt",
+      "doc_id": "dsid_37b7703caa1d49f29420968d956623c5",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "8f2aa194f979b00996c5445f679cdb0db46340c8838cf1ead66da7b34bed52e1"
+    },
+    {
+      "path": "corpus/slack/dsid_3a0d075faf754963ae04b690997e7b53__1755002468-si-orchestrator-handoff-patterns.txt",
+      "doc_id": "dsid_3a0d075faf754963ae04b690997e7b53",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "4826ce30e4a51212c4d2351137ac30ff7e8b72bfacf9dc1db2f65d77cdb45b7e"
+    },
+    {
+      "path": "corpus/slack/dsid_3c2d487ca30846169f6cc048e55b2f9c__1742000000-montreal-marketplace-gpu-quota-kickoff.txt",
+      "doc_id": "dsid_3c2d487ca30846169f6cc048e55b2f9c",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "1c89a0ef222f9906696e89868292be2f7354d91abc44082464674d877635d161"
+    },
+    {
+      "path": "corpus/slack/dsid_3ddc11785cdc4aca947a44feed5fd2f9__1993056789-marketplace-sku-usage-scale-factor-bug.txt",
+      "doc_id": "dsid_3ddc11785cdc4aca947a44feed5fd2f9",
+      "archive": "slack_slice_0001.zip",
+      "sha256": "8b63044d8d8734f4ca4062480e7ca853414189be4aa6d77dbed5b35e1ff8afc9"
+    },
+    {
+      "path": "corpus/fireflies/dsid_01649d6aac784c399d4c257ca5e57e78__2025-09-30-helixcloud-saas-gpu-orchestration-partner-intro.txt",
+      "doc_id": "dsid_01649d6aac784c399d4c257ca5e57e78",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "cb31eeab254fb10cf1b047393ca6f2f926f7342da9a6f55f8b248480ddc34a29"
+    },
+    {
+      "path": "corpus/fireflies/dsid_02219ecca2224dad871498fdc3d0e9bd__2025-06-11-token-economics-budget-plan-sable-systems.txt",
+      "doc_id": "dsid_02219ecca2224dad871498fdc3d0e9bd",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "f13ae44bc84b47bd032440def30bb68f33f1d6672f30e537b79e223d2f357ea0"
+    },
+    {
+      "path": "corpus/fireflies/dsid_03540ce862c5405e8886aabb74695f63__2025-09-18-lyra-cloud-accelerator-partner-framing-call.txt",
+      "doc_id": "dsid_03540ce862c5405e8886aabb74695f63",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "b04670b07c4029d8b1a30b330af908993b8e94cf88fe9cbb83396cd1e4d61cf3"
+    },
+    {
+      "path": "corpus/fireflies/dsid_03a3ff989eaf49b28767b3b4b2e1d533__2026-02-18-helioswave-channel-integration-framing.txt",
+      "doc_id": "dsid_03a3ff989eaf49b28767b3b4b2e1d533",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "180b2e57c1ec01feb9e595b49856c967b5492014671342f24e0b58a27b6b05f8"
+    },
+    {
+      "path": "corpus/fireflies/dsid_03a81ec708bd45069b800261eae37162__2027-03-25-lantana-marketplace-embeddings-rerank-hosted-api-session.txt",
+      "doc_id": "dsid_03a81ec708bd45069b800261eae37162",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "c004496a4cdea751c56b1bc35907f0a181185d491617d97810ef1b6df10d9bea"
+    },
+    {
+      "path": "corpus/fireflies/dsid_04f68c6d0c5b4d6bbc7a0e9936bfb2c9__2026-11-12-helioGrid-connector-publish-and-refarch-alignment.txt",
+      "doc_id": "dsid_04f68c6d0c5b4d6bbc7a0e9936bfb2c9",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "2101bbd9b60686c34cb28180cf1d7dd5a18c2a57bb1a8106b912e30f5b1aa339"
+    },
+    {
+      "path": "corpus/fireflies/dsid_064e1d484e5a4156ad770748b96368b6__2027-09-29-verdant-accelerators-orchestration-marketplace-onramp-discovery.txt",
+      "doc_id": "dsid_064e1d484e5a4156ad770748b96368b6",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "0f1128c2c529503d469173774b13137efc5a2f1b1af61dc912de23458dac8019"
+    },
+    {
+      "path": "corpus/fireflies/dsid_0b9b53996f4440bc941cb98d38a0b82e__2025-02-12-cloudwave-ap-northeast-marketplace-refarch-sync.txt",
+      "doc_id": "dsid_0b9b53996f4440bc941cb98d38a0b82e",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "816284d50c178041a7fb65277cf0bf16118d17d6922d7767b534da42ea362834"
+    },
+    {
+      "path": "corpus/fireflies/dsid_0d88539701a348eebcfedcb01cd9e33c__2026-05-06-orbit-sync-product-ops-bridge.txt",
+      "doc_id": "dsid_0d88539701a348eebcfedcb01cd9e33c",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "c4584f1917876d39f327d96ff7a182112eaf0849f2e59ca6faa74ae58c6b1928"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1271eb5c11f349f8bd2dd16725f09619__2026-05-29-sandbar-orbitbridge-gpu-onramp-intro.txt",
+      "doc_id": "dsid_1271eb5c11f349f8bd2dd16725f09619",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "697d5f8bf918367e188c1709d7404dee9def0352a152c39c7707faab5d8d1119"
+    },
+    {
+      "path": "corpus/fireflies/dsid_13d2ad3aa604406da121b5c7d1f24b2e__2026-06-05-orchardly-onprem-kms-networking-pilot-sync.txt",
+      "doc_id": "dsid_13d2ad3aa604406da121b5c7d1f24b2e",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "8422515fbd9782c296fc0c17095cf9ebf74a2894e67cc31f66a3a45e3ddccdfc"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1863dfa20e1d4cf4ad08e7e87f1df445__2026-01-14-aurelion-systems-hybrid-marketplace-integration-lab-sync.txt",
+      "doc_id": "dsid_1863dfa20e1d4cf4ad08e7e87f1df445",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "b80bee0a020ca7c8835525772441f196334b3d48e6df294db00bc0e121102ee2"
+    },
+    {
+      "path": "corpus/fireflies/dsid_186d970afac4463ab80b85e32903811c__2026-12-28-vectorcloud-redwood-onramp-discovery.txt",
+      "doc_id": "dsid_186d970afac4463ab80b85e32903811c",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "340bb7226be05335391c45fa79412b72648883015588a9b2e6b47e66c2039821"
+    },
+    {
+      "path": "corpus/fireflies/dsid_18aa44e0a2e440159f9d930152e7a3ed__2027-01-19-aerostack-vpc-listing-compatibility-and-edge-cache-patterns.txt",
+      "doc_id": "dsid_18aa44e0a2e440159f9d930152e7a3ed",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "af4df957540d02313c51da32f793995d6eb14e971ff3e9e3c8d5adad694c5092"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1906b8172f8049749b7c3516dea4e426__2026-04-09-hyperlane-cloud-onramp-friction-discovery.txt",
+      "doc_id": "dsid_1906b8172f8049749b7c3516dea4e426",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "e5e4ad2927797799d64766edbf92a0a8ecfd612a6da1d3807ae5822a763a17f4"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1a22bb9d0dcc4dd087cf177b78576e24__2025-06-26-partner-co-marketing-sync.txt",
+      "doc_id": "dsid_1a22bb9d0dcc4dd087cf177b78576e24",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "6f1ab72b80beed82710c7421b512b24bacd8302693108033b95b52916dfa15e8"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1c0bbe38bf254dc9b377f2baf32ff7c2__2026-05-01-skyvault-strategic-onramp-discovery.txt",
+      "doc_id": "dsid_1c0bbe38bf254dc9b377f2baf32ff7c2",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "6bc754b4473dd11591ab40b015c7e96e1169256832658bc848a255f32f5e1d07"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1c3a1e03efe64ce689a6e74750ee197a__2026-03-10-latencyworks-hybrid-refarch-listing-readiness.txt",
+      "doc_id": "dsid_1c3a1e03efe64ce689a6e74750ee197a",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "271e889c6ef1cc44ca9debf200c92c76a4391e55cac034d4f7a94ed674aac461"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1cbbe14b32144d06aedab6c01e77bc73__2027-12-06-echo-sparrow-llm-adapter-onprem-sandbox-handoff.txt",
+      "doc_id": "dsid_1cbbe14b32144d06aedab6c01e77bc73",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "b9c8c122bc3700a3ea50e6f518b3a0c959523d0559c59d51e829a70407aea96c"
+    },
+    {
+      "path": "corpus/fireflies/dsid_1da2fd8b90224d7e8b3fdab6a8f08c7c__2025-10-03-skybridge-azure-marketplace-packaging-sprint.txt",
+      "doc_id": "dsid_1da2fd8b90224d7e8b3fdab6a8f08c7c",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "0206afb2ec049955e134b49812cb755a4ca29de3a162a3fdb86fda4513ded009"
+    },
+    {
+      "path": "corpus/fireflies/dsid_20444870bf824ac98c1e3881fe613935__2026-03-21-prompt-guardrails-sandbox-session.txt",
+      "doc_id": "dsid_20444870bf824ac98c1e3881fe613935",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "727388f0dd87861ed00e7be05c657ae58b73aa071645dc35c077e43befc3e2e5"
+    },
+    {
+      "path": "corpus/fireflies/dsid_21e1aaff6ebe4302874d3dc215e81d94__2026-05-11-garnet-insights-embeddings-rerank-walkthrough.txt",
+      "doc_id": "dsid_21e1aaff6ebe4302874d3dc215e81d94",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "2577ef4e89f77ac89e1dcf0b10567fe31fc637e97fa28eaa9acba0447f9d2b74"
+    },
+    {
+      "path": "corpus/fireflies/dsid_22402329eb6646a5a98a14145e4d52ee__2026-12-09-edgebridge-listing-vpc-onprem-integration-review.txt",
+      "doc_id": "dsid_22402329eb6646a5a98a14145e4d52ee",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "758a7757941b643a1e91a80a8c968e4aeb7b8079cf8099e6faf3b9c69e0e7882"
+    },
+    {
+      "path": "corpus/fireflies/dsid_242bf8236b0c46b3a41479729eaa12d2__2026-04-30-sapphire-comms-hybrid-listing-llm-gateway-interop-huddle.txt",
+      "doc_id": "dsid_242bf8236b0c46b3a41479729eaa12d2",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "0bd517c218e58c287f4249073e0fdc348a883b8f2142eb2ffe504ad528913a58"
+    },
+    {
+      "path": "corpus/fireflies/dsid_271dc15025184fc681e7e3b131b5c433__2028-11-02-skyhook-accelerator-channel-compatibility-chat.txt",
+      "doc_id": "dsid_271dc15025184fc681e7e3b131b5c433",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "8457a6d4877bac29126bc363af86a2b5df006b1f55295b18f75bba5637bd9161"
+    },
+    {
+      "path": "corpus/fireflies/dsid_2854eaaa65074e7890e04e08c973a4b4__2025-11-13-stratacove-marketplace-refarch-connector-breakout.txt",
+      "doc_id": "dsid_2854eaaa65074e7890e04e08c973a4b4",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "e619c76859d3de46e4e5dd13bbaa2cc46d6a2177255a5c97819a9d7c9d1bc39a"
+    },
+    {
+      "path": "corpus/fireflies/dsid_2876db9f25b344f1a26a04698ef1b251__2028-03-09-silkrun-marketplace-onprem-connector-hackday.txt",
+      "doc_id": "dsid_2876db9f25b344f1a26a04698ef1b251",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "3b9e7adedb5ffe85ad7e68b130d3b33c81fe68ebb191c53ac263f201c65ad782"
+    },
+    {
+      "path": "corpus/fireflies/dsid_6c4c1c875e704f09b4d791d64d7bc7e5__2026-01-16-gcp-marketplace-onboarding-and-billing-review.txt",
+      "doc_id": "dsid_6c4c1c875e704f09b4d791d64d7bc7e5",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "2847d90918b11ff2f4d825fb5a50a8648ac4ffc4da825dd408f6fb4cb5bd6f9f"
+    },
+    {
+      "path": "corpus/fireflies/dsid_862bb899faac43feab4f92a12d320e7c__2026-02-03-marketplace-security-review-with-prospect.txt",
+      "doc_id": "dsid_862bb899faac43feab4f92a12d320e7c",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "8ca93bf81099ba7202632903b5cb99d0412211154a02be55d3d3b35bf2666192"
+    },
+    {
+      "path": "corpus/fireflies/dsid_9ed01291d81947f49500df5fb28ab724__2025-05-28-private-upgrades-technical-deep-dive.txt",
+      "doc_id": "dsid_9ed01291d81947f49500df5fb28ab724",
+      "archive": "fireflies_slice_0001.zip",
+      "sha256": "78bc2d7f634ac45799d02a5b719b17204e25b0022cd2c108fe0fbe4ef1cc0ae9"
+    }
+  ]
+}

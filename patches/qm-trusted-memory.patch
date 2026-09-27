@@ -1,0 +1,448 @@
+diff --git a/docs/memory-providers.md b/docs/memory-providers.md
+index ee7fb531..6b7a157d 100644
+--- a/docs/memory-providers.md
++++ b/docs/memory-providers.md
+@@ -47,7 +47,7 @@ Capture policies are:
+ - `explicit`: writes only through deliberate memory actions;
+ - `automatic`: explicit writes plus post-turn capture.
+ 
+-MCP reads receive `query` and `acting_user` by default. Writes receive `content` and `acting_user`. Operation entries can map optional fields with `queryArg`, `contentArg`, `actorArg`, `scopeArg`, `maxCharsArg`, `inputArg`, `replyArg`, `capturedAtArg`, `sourceArg`, and `idempotencyArg`. Only configured optional fields are sent, so providers can match strict MCP schemas.
++MCP reads receive `query` and `acting_user` by default. Writes receive `content` and `acting_user`. Operation entries can map optional fields with `queryArg`, `contentArg`, `actorArg`, `scopeArg`, `conversationScopeArg`, `maxCharsArg`, `inputArg`, `replyArg`, `capturedAtArg`, `sourceArg`, and `idempotencyArg`. Only configured optional fields are sent, so providers can match strict MCP schemas. Set both `read.scopeArg` and `read.conversationScopeArg` for providers that distinguish the searched memory scope from the turn's conversation scope. The acting user and conversation scope come from QM's trusted turn context, not the model's search arguments; outside a turn, the conversation scope is omitted.
+ 
+ Read and write operations use separate OAuth client-credential pairs. Omit `write` and set route capture to `off` for a read-only provider. External routes fail open by default so an outage does not block recall; set `failOpen: false` on a route to make it strict. Provider calls time out after `timeoutMs` (3 seconds by default). Explicit writes always fail visibly. QM continues to decide readable/writable scopes and passes the acting user to the provider.
+ 
+diff --git a/scripts/dev/supervisor/main.ts b/scripts/dev/supervisor/main.ts
+index 66c7eff1..55606ebf 100644
+--- a/scripts/dev/supervisor/main.ts
++++ b/scripts/dev/supervisor/main.ts
+@@ -399,7 +399,9 @@ async function assembleAndPrepare(spec: BootSpec): Promise<SpecInputs> {
+   if (!portalDevPrincipal && adminGrantsSeed) portalDevPrincipal = adminGrantsSeed.split(":")[0] ?? "";
+   if (!portalDevPrincipal && durableAdminPrincipal) portalDevPrincipal = durableAdminPrincipal;
+   if (!portalDevPrincipal) portalDevPrincipal = assembled.env.USER || "dev-admin";
+-  log(`portal auth: localhost bypass signs in as ${portalDevPrincipal}`);
++  if ((assembled.env.PORTAL_LOCAL_AUTH_BYPASS ?? "1") === "1")
++    log(`portal auth: localhost bypass signs in as ${portalDevPrincipal}`);
++  else log("portal auth: localhost bypass disabled; authenticated sign-in required");
+ 
+   const tokens = slackOn(spec) ? slotTokens(slot, store) : null;
+ 
+diff --git a/scripts/dev/supervisor/specs.ts b/scripts/dev/supervisor/specs.ts
+index d974f0ca..9a4da3fe 100644
+--- a/scripts/dev/supervisor/specs.ts
++++ b/scripts/dev/supervisor/specs.ts
+@@ -71,7 +71,7 @@ export function buildChildSpecs(i: SpecInputs): ChildSpec[] {
+         WEB_UI_BASE: i.webUiBasePath,
+         ...(i.watch ? { WEB_UI_DEV: "1" } : {}),
+         CORE_ORG_ID: orgId,
+-        WEB_UI_PRINCIPALS: "",
++        WEB_UI_PRINCIPALS: i.baseEnv.WEB_UI_PRINCIPALS ?? "",
+         WEB_UI_PUBLIC_URL: `http://localhost:${i.ports.portal}`,
+       },
+       port: i.ports.web,
+@@ -94,7 +94,7 @@ export function buildChildSpecs(i: SpecInputs): ChildSpec[] {
+         ADMIN_UPSTREAM: `http://localhost:${i.ports.web}/admin`,
+         PORTAL_SESSION_SECRET: i.portalSessionSecret,
+         NODE_ENV: "development",
+-        PORTAL_LOCAL_AUTH_BYPASS: "1",
++        PORTAL_LOCAL_AUTH_BYPASS: i.baseEnv.PORTAL_LOCAL_AUTH_BYPASS ?? "1",
+         PORTAL_DEV_PRINCIPAL: i.portalDevPrincipal,
+       },
+       port: i.ports.portal,
+diff --git a/src/api/routes/surface.ts b/src/api/routes/surface.ts
+index 28783544..215c21f5 100644
+--- a/src/api/routes/surface.ts
++++ b/src/api/routes/surface.ts
+@@ -723,6 +723,7 @@ async function agentMemory(ctx: ApiCtx): Promise<void> {
+       if (results.length >= limit) break;
+       for (const fact of await deps.memory.query(scope, b.query, limit - results.length, {
+         actorId: capability.actorId,
++        conversationScopeId: capability.scopeId,
+       })) {
+         results.push({ scopeId: scope, fact });
+       }
+diff --git a/src/memory/mcp-memory-provider.ts b/src/memory/mcp-memory-provider.ts
+index 5b756abb..17af752f 100644
+--- a/src/memory/mcp-memory-provider.ts
++++ b/src/memory/mcp-memory-provider.ts
+@@ -1,5 +1,6 @@
+ import { mcpResultText, type McpClient, type McpToolResult } from "../mcp/mcp-client.ts";
+-import type { MemoryService } from "./memory-service.ts";
++import type { ScopeId } from "../types.ts";
++import type { MemoryRecallContext, MemoryService } from "./memory-service.ts";
+ 
+ export interface McpMemoryOperation {
+   client: McpClient;
+@@ -8,6 +9,7 @@ export interface McpMemoryOperation {
+   contentArg?: string;
+   actorArg?: string;
+   scopeArg?: string;
++  conversationScopeArg?: string;
+   maxCharsArg?: string;
+   inputArg?: string;
+   replyArg?: string;
+@@ -39,18 +41,20 @@ function resultText(result: McpToolResult): string {
+ }
+ 
+ export function createMcpMemoryProvider(opts: { read: McpMemoryOperation; write?: McpMemoryOperation }): MemoryService {
+-  const read = async (scopeId: string, query: string, actorId?: string, maxChars?: number): Promise<string> => {
++  const read = async (scopeId: ScopeId, query: string, context?: MemoryRecallContext): Promise<string> => {
+     const op = opts.read;
+     const args: Record<string, unknown> = { [op.queryArg ?? "query"]: query };
+-    if (actorId) args[op.actorArg ?? "acting_user"] = actorId;
++    if (context?.actorId) args[op.actorArg ?? "acting_user"] = context.actorId;
+     if (op.scopeArg) args[op.scopeArg] = scopeId;
+-    if (maxChars && op.maxCharsArg) args[op.maxCharsArg] = maxChars;
++    if (op.conversationScopeArg && context?.conversationScopeId)
++      args[op.conversationScopeArg] = context.conversationScopeId;
++    if (context?.maxChars && op.maxCharsArg) args[op.maxCharsArg] = context.maxChars;
+     const text = resultText(await withTimeout(op.client.callTool(op.tool, args), op.timeoutMs));
+-    return maxChars && text.length > maxChars ? text.slice(0, maxChars) : text;
++    return context?.maxChars && text.length > context.maxChars ? text.slice(0, context.maxChars) : text;
+   };
+ 
+   return {
+-    recall: (scopeId, context) => read(scopeId, context?.query ?? "", context?.actorId, context?.maxChars),
++    recall: (scopeId, context) => read(scopeId, context?.query ?? "", context),
+ 
+     async capture(scopeId, facts, at, author, context) {
+       const op = opts.write;
+@@ -69,7 +73,7 @@ export function createMcpMemoryProvider(opts: { read: McpMemoryOperation; write?
+     },
+ 
+     async query(scopeId, q, limit = 20, context) {
+-      const text = await read(scopeId, q, context?.actorId, context?.maxChars);
++      const text = await read(scopeId, q, context);
+       return text ? text.split("\n").filter(Boolean).slice(0, limit) : [];
+     },
+ 
+diff --git a/src/memory/provider-config.ts b/src/memory/provider-config.ts
+index 64c9b6b5..a83b2331 100644
+--- a/src/memory/provider-config.ts
++++ b/src/memory/provider-config.ts
+@@ -19,6 +19,7 @@ export interface McpMemoryOperationConfig {
+   contentArg?: string;
+   actorArg?: string;
+   scopeArg?: string;
++  conversationScopeArg?: string;
+   maxCharsArg?: string;
+   inputArg?: string;
+   replyArg?: string;
+@@ -103,6 +104,7 @@ function operation(value: unknown, at: string, env: NodeJS.ProcessEnv): McpMemor
+     "contentArg",
+     "actorArg",
+     "scopeArg",
++    "conversationScopeArg",
+     "maxCharsArg",
+     "inputArg",
+     "replyArg",
+diff --git a/src/memory/provider-factory.ts b/src/memory/provider-factory.ts
+index 875d95ad..a74fc29d 100644
+--- a/src/memory/provider-factory.ts
++++ b/src/memory/provider-factory.ts
+@@ -27,6 +27,7 @@ function operation(
+     ...(spec.contentArg ? { contentArg: spec.contentArg } : {}),
+     ...(spec.actorArg ? { actorArg: spec.actorArg } : {}),
+     ...(spec.scopeArg ? { scopeArg: spec.scopeArg } : {}),
++    ...(spec.conversationScopeArg ? { conversationScopeArg: spec.conversationScopeArg } : {}),
+     ...(spec.maxCharsArg ? { maxCharsArg: spec.maxCharsArg } : {}),
+     ...(spec.inputArg ? { inputArg: spec.inputArg } : {}),
+     ...(spec.replyArg ? { replyArg: spec.replyArg } : {}),
+diff --git a/src/resolution/turn-context.ts b/src/resolution/turn-context.ts
+index 7bbc981b..25baaf3d 100644
+--- a/src/resolution/turn-context.ts
++++ b/src/resolution/turn-context.ts
+@@ -29,10 +29,11 @@ interface MemoryReaderInput {
+   memory: MemoryService;
+   scopes: readonly ScopeId[];
+   actorId: string;
++  conversationScopeId?: ScopeId;
+   onRead?: (scope: ScopeId) => void;
+ }
+ 
+-export function contextMemory({ memory, scopes, actorId, onRead }: MemoryReaderInput) {
++export function contextMemory({ memory, scopes, actorId, conversationScopeId, onRead }: MemoryReaderInput) {
+   return {
+     async recall(): Promise<string> {
+       const sections: string[] = [];
+@@ -47,7 +48,7 @@ export function contextMemory({ memory, scopes, actorId, onRead }: MemoryReaderI
+       if (!scopes.length) return null;
+       const hits: string[] = [];
+       for (const scope of scopes) {
+-        const facts = await memory.query(scope, query, limit, { actorId });
++        const facts = await memory.query(scope, query, limit, { actorId, conversationScopeId });
+         onRead?.(scope);
+         hits.push(...facts.map((fact) => (scopes.length > 1 ? `[${scope}] ${fact}` : fact)));
+       }
+@@ -94,6 +95,7 @@ export async function resolveTurnContext(input: ContextInput) {
+     memory: input.memory,
+     scopes: read,
+     actorId: input.actor.id,
++    conversationScopeId: input.targetScope,
+     onRead: (scope) => recordRead(scope, "memory"),
+   });
+   const handles = [
+diff --git a/test/dev-cli-lib.test.ts b/test/dev-cli-lib.test.ts
+index 53017333..cf2d7194 100644
+--- a/test/dev-cli-lib.test.ts
++++ b/test/dev-cli-lib.test.ts
+@@ -444,6 +444,35 @@ test("supervised children share the selected dev org", () => {
+   assert.equal(buildChildSpecs(inputs).find((spec) => spec.name === "core")!.env.ORG_ID, "acme");
+ });
+ 
++test("dev launcher defaults to local bypass but honors authenticated portal and web allowlist overrides", () => {
++  const inputs: SpecInputs = {
++    worktree: "/tmp/worktree",
++    ports: slotPorts("pool1"),
++    baseEnv: {},
++    watch: false,
++    webUiBasePath: "/",
++    sessionStore: "memory",
++    runStore: "memory",
++    databaseUrl: "",
++    adminGrantsSeed: "",
++    coreSigningSecret: "",
++    portalSessionSecret: "secret",
++    portalDevPrincipal: "U1",
++    sandboxEnv: {},
++  };
++  const defaults = buildChildSpecs(inputs);
++  assert.equal(defaults.find((spec) => spec.name === "portal")!.env.PORTAL_LOCAL_AUTH_BYPASS, "1");
++  assert.equal(defaults.find((spec) => spec.name === "web")!.env.WEB_UI_PRINCIPALS, "");
++
++  inputs.baseEnv = { PORTAL_LOCAL_AUTH_BYPASS: "0", WEB_UI_PRINCIPALS: "admin@example.com,intern@example.com" };
++  const authenticated = buildChildSpecs(inputs);
++  assert.equal(authenticated.find((spec) => spec.name === "portal")!.env.PORTAL_LOCAL_AUTH_BYPASS, "0");
++  assert.equal(
++    authenticated.find((spec) => spec.name === "web")!.env.WEB_UI_PRINCIPALS,
++    "admin@example.com,intern@example.com",
++  );
++});
++
+ test("child specs disable environment Slack tokens when no Slack tokens are supplied", () => {
+   const inputs: SpecInputs = {
+     worktree: "/tmp/worktree",
+diff --git a/test/mcp-memory-provider.test.ts b/test/mcp-memory-provider.test.ts
+index b1c88214..2a76ce6d 100644
+--- a/test/mcp-memory-provider.test.ts
++++ b/test/mcp-memory-provider.test.ts
+@@ -1,6 +1,7 @@
+ import { test } from "node:test";
+ import assert from "node:assert/strict";
+ import { createMcpMemoryProvider } from "../src/memory/mcp-memory-provider.ts";
++import { contextMemory } from "../src/resolution/turn-context.ts";
+ import type { McpClient } from "../src/mcp/mcp-client.ts";
+ 
+ function client(calls: Array<{ tool: string; args: Record<string, unknown> }>, text = "result"): McpClient {
+@@ -67,3 +68,49 @@ test("MCP recall is locally bounded and times out", async () => {
+   const timed = createMcpMemoryProvider({ read: { client: hanging, tool: "read", timeoutMs: 10 } });
+   await assert.rejects(timed.recall("org:yc"), /timed out after 10ms/);
+ });
++
++test("MCP search forwards the trusted actor, searched scope, and conversation scope separately", async () => {
++  const calls: Array<{ tool: string; args: Record<string, unknown> }> = [];
++  const memory = createMcpMemoryProvider({
++    read: {
++      client: client(calls),
++      tool: "qm_recall",
++      timeoutMs: 100,
++      scopeArg: "qm_scope",
++      conversationScopeArg: "conversation_scope",
++    },
++  });
++
++  await contextMemory({
++    memory,
++    scopes: ["org:acme"],
++    actorId: "ana@example.com",
++    conversationScopeId: "personal:ana@example.com",
++  }).search("pay");
++  await contextMemory({
++    memory,
++    scopes: ["personal:ana@example.com"],
++    actorId: "ana@example.com",
++    conversationScopeId: "channel:leaders",
++  }).search("pay");
++  await contextMemory({ memory, scopes: ["personal:ana@example.com"], actorId: "ana@example.com" }).search("pay");
++
++  assert.deepEqual(
++    calls.map(({ args }) => args),
++    [
++      {
++        query: "pay",
++        acting_user: "ana@example.com",
++        qm_scope: "org:acme",
++        conversation_scope: "personal:ana@example.com",
++      },
++      {
++        query: "pay",
++        acting_user: "ana@example.com",
++        qm_scope: "personal:ana@example.com",
++        conversation_scope: "channel:leaders",
++      },
++      { query: "pay", acting_user: "ana@example.com", qm_scope: "personal:ana@example.com" },
++    ],
++  );
++});
+diff --git a/test/memory-agent-routes.test.ts b/test/memory-agent-routes.test.ts
+index 49807fa2..f30575be 100644
+--- a/test/memory-agent-routes.test.ts
++++ b/test/memory-agent-routes.test.ts
+@@ -100,6 +100,30 @@ describe("agent memory self-API (/v1/memory/self|search|facts)", () => {
+     assert.match(results[0].fact, /Fridays/);
+   });
+ 
++  it("derives actor and conversation scope from the signed capability, ignoring body hints", async () => {
++    const cap = await capFor("U1", { read: [U1, ORG] });
++    const query = built.memory.query;
++    const contexts: Array<{ actorId?: string; conversationScopeId?: string }> = [];
++    built.memory.query = async (scope, text, limit, context) => {
++      contexts.push({ actorId: context?.actorId, conversationScopeId: context?.conversationScopeId });
++      return query(scope, text, limit, context);
++    };
++    try {
++      const res = await post(
++        "/v1/memory/search",
++        { query: "all-hands", actorId: "U2", conversationScopeId: "personal:U2", scopeId: "personal:U2" },
++        { "x-agent-capability": cap },
++      );
++      assert.equal(res.status, 200);
++      assert.deepEqual(contexts, [
++        { actorId: "U1", conversationScopeId: U1 },
++        { actorId: "U1", conversationScopeId: U1 },
++      ]);
++    } finally {
++      built.memory.query = query;
++    }
++  });
++
+   it("cannot search a scope the token does not carry", async () => {
+     await built.memory.capture(scopeId("personal", "U2"), ["U2's private fact about kumquats."], Date.now());
+     const cap = await capFor("U1", { write: U1, read: [U1, ORG] });
+diff --git a/test/memory-provider-config.test.ts b/test/memory-provider-config.test.ts
+index a2444b1d..bb27ea14 100644
+--- a/test/memory-provider-config.test.ts
++++ b/test/memory-provider-config.test.ts
+@@ -1,6 +1,8 @@
+ import { test } from "node:test";
+ import assert from "node:assert/strict";
+ import { parseMemoryProviderConfig } from "../src/memory/provider-config.ts";
++import { createConfiguredMemoryService } from "../src/memory/provider-factory.ts";
++import type { MemoryService } from "../src/memory/memory-service.ts";
+ 
+ const value = JSON.stringify({
+   providers: [
+@@ -47,6 +49,69 @@ test("provider config resolves MCP credentials and scope routes", () => {
+   );
+ });
+ 
++test("provider config accepts separately named searched and conversation scope arguments", () => {
++  const parsed = JSON.parse(value);
++  parsed.providers[0].read.scopeArg = "qm_scope";
++  parsed.providers[0].read.conversationScopeArg = "conversation_scope";
++  const config = parseMemoryProviderConfig(JSON.stringify(parsed), {
++    KNOWLEDGE_RO_CLIENT_ID: "ro",
++    KNOWLEDGE_RO_CLIENT_SECRET: "ro-secret",
++    KNOWLEDGE_RW_CLIENT_ID: "rw",
++    KNOWLEDGE_RW_CLIENT_SECRET: "rw-secret",
++  });
++  const provider = config?.providers[0];
++  if (provider?.type !== "mcp") throw new Error("expected mcp provider");
++  assert.equal(provider.read.scopeArg, "qm_scope");
++  assert.equal(provider.read.conversationScopeArg, "conversation_scope");
++});
++
++test("configured provider sends both scopes and the actor through MCP transport", async () => {
++  const parsed = JSON.parse(value);
++  parsed.providers[0].read.scopeArg = "qm_scope";
++  parsed.providers[0].read.conversationScopeArg = "conversation_scope";
++  parsed.routes = [{ provider: "knowledge", scopes: ["personal"], capture: "off", manage: false }];
++  const config = parseMemoryProviderConfig(JSON.stringify(parsed), {
++    KNOWLEDGE_RO_CLIENT_ID: "ro",
++    KNOWLEDGE_RO_CLIENT_SECRET: "ro-secret",
++    KNOWLEDGE_RW_CLIENT_ID: "rw",
++    KNOWLEDGE_RW_CLIENT_SECRET: "rw-secret",
++  });
++  const calls: unknown[] = [];
++  const memory = createConfiguredMemoryService({
++    defaultMemory: {} as MemoryService,
++    config,
++    fetchImpl: async (_url, init) => {
++      if (init.headers["content-type"] === "application/x-www-form-urlencoded")
++        return { ok: true, status: 200, text: async () => JSON.stringify({ access_token: "test", expires_in: 3600 }) };
++      const request = JSON.parse(init.body);
++      calls.push(request.params);
++      return {
++        ok: true,
++        status: 200,
++        text: async () => JSON.stringify({ id: request.id, result: { content: [{ type: "text", text: "found" }] } }),
++      };
++    },
++  });
++  assert.deepEqual(
++    await memory.query("personal:admin@example.com", "private", 20, {
++      actorId: "admin@example.com",
++      conversationScopeId: "personal:admin@example.com",
++    }),
++    ["found"],
++  );
++  assert.deepEqual(calls, [
++    {
++      name: "search_knowledge",
++      arguments: {
++        query: "private",
++        acting_user: "admin@example.com",
++        qm_scope: "personal:admin@example.com",
++        conversation_scope: "personal:admin@example.com",
++      },
++    },
++  ]);
++});
++
+ test("provider config rejects unknown providers and public cleartext MCP URLs", () => {
+   assert.throws(
+     () =>
+diff --git a/test/turn-context.test.ts b/test/turn-context.test.ts
+index c34fcf72..b14f5b3a 100644
+--- a/test/turn-context.test.ts
++++ b/test/turn-context.test.ts
+@@ -12,6 +12,7 @@ import { createMemoryFileArtifactStore } from "../src/files/file-artifact-store.
+ import { createMemoryDurableByteStore } from "../src/files/durable-byte-store.ts";
+ import { createAuditLog } from "../src/audit/audit-log.ts";
+ import type { Resolution, Session } from "../src/types.ts";
++import { conversationScope } from "../src/resolution/resolution-service.ts";
+ 
+ async function fixture() {
+   const workspace = createLocalWorkspaceStore(mkdtempSync(join(tmpdir(), "turn-context-")));
+@@ -84,6 +85,32 @@ test("one context loads full source-labelled notebooks and shares authority with
+   assert.ok(events.some((e) => e.resource === "plan.txt" && e.detail?.includes("channel:eng")));
+ });
+ 
++test("memory search uses canonical actor and conversation scope, not a searched or prompt-selected scope", async () => {
++  const { input } = await fixture();
++  const seen: Array<{ scope: string; query: string; actor?: string; conversation?: string }> = [];
++  input.memory = {
++    ...input.memory,
++    async query(scope, query, _limit, context) {
++      seen.push({ scope, query, actor: context?.actorId, conversation: context?.conversationScopeId });
++      return [];
++    },
++  };
++
++  const actorId = "alice";
++  const dmScope = conversationScope({ kind: "dm", threadRef: "dm:alice:1" }, actorId);
++  assert.equal(dmScope, "personal:alice");
++  assert.equal(conversationScope({ kind: "channel", channelRef: "C1", threadRef: "C1:1" }, actorId), "channel:C1");
++  assert.equal(conversationScope({ kind: "group", channelRef: "G1", threadRef: "G1:1" }, actorId), "group:G1");
++  const context = await resolveTurnContext(input);
++  await context.searchMemory("personal:bob pay");
++  assert.deepEqual(seen.map(({ actor, conversation }) => ({ actor, conversation })), [
++    { actor: actorId, conversation: dmScope },
++    { actor: actorId, conversation: dmScope },
++    { actor: actorId, conversation: dmScope },
++  ]);
++  assert.ok(seen.some(({ scope }) => scope === "channel:eng"));
++});
++
+ for (const mode of [
+   "isolated",
+   "source-veto",

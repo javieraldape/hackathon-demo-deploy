@@ -1,0 +1,33 @@
+--- a/dist/thread-bindings-DUiuuGsl.mjs
++++ b/dist/thread-bindings-DUiuuGsl.mjs
+@@ -264,6 +264,7 @@
+ 				accountId,
+ 				persist: manager.shouldPersistMutations(),
+ 				binding: nextRecord,
++				store: bindingStore,
+ 				reason: "touch"
+ 			});
+ 			return nextRecord;
+@@ -387,17 +388,18 @@
+ 				}
+ 			});
+ 			if (!nativeTopicCreated) assertCurrent?.();
+-			getThreadBindingsState().bindingsByAccountConversation.set(resolveBindingKey({
+-				accountId,
+-				conversationId
+-			}), record);
+ 			persistBindingMutation({
++				store: bindingStore,
+ 				accountId,
+ 				persist: manager.shouldPersistMutations(),
+ 				binding: record,
+ 				reason: "bind",
+ 				throwOnError: true
+ 			});
++			getThreadBindingsState().bindingsByAccountConversation.set(resolveBindingKey({
++				accountId,
++				conversationId
++			}), record);
+ 			logVerbose(`telegram: bound conversation ${conversationId} -> ${targetSessionKey} (${summarizeLifecycleForLog(record, {
+ 				idleTimeoutMs,
+ 				maxAgeMs

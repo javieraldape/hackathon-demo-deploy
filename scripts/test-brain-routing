@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import time
+import urllib.parse
+import urllib.request
+import uuid
+
+
+def request(path, body=None):
+    base = "http://localhost:8129"
+    req = urllib.request.Request(
+        base + path,
+        data=json.dumps(body).encode() if body is not None else None,
+        headers={"Content-Type": "application/json", "Origin": base},
+    )
+    with urllib.request.urlopen(req, timeout=30) as response:
+        return json.load(response)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Live QM regression test against an existing shared GBrain fact.")
+    parser.add_argument("--fact-id", required=True, type=int)
+    parser.add_argument("--expected-text", required=True)
+    parser.add_argument("--thread-ref", help="Retest an existing conversation instead of creating a fresh one")
+    args = parser.parse_args()
+    if args.fact_id < 1 or not args.expected_text.strip():
+        parser.error("Provide a positive fact ID and nonempty expected text")
+    identity = request("/admin/api/whoami")
+    thread = args.thread_ref or f"web:{identity['principal']}:brain-routing-test-{uuid.uuid4()}"
+    prompts = ["tell me the last thing i told you to save to the brain", f"look at fact #{args.fact_id}"]
+    for prompt in prompts:
+        turn = request("/api/turn", {"threadRef": thread, "harness": "codex", "text": prompt})
+        deadline = time.monotonic() + 240
+        while time.monotonic() < deadline:
+            run = request("/api/runs/" + urllib.parse.quote(turn["runId"], safe=""))
+            if run.get("status") in ("done", "failed", "cancelled"):
+                break
+            time.sleep(2)
+        else:
+            raise SystemExit("FAIL: QM turn timed out")
+        activity = run.get("activity", [])
+        recalled = any(
+            item.get("type") == "tool_result"
+            and item.get("payload", {}).get("tool") == "hackathon-gbrain_recall"
+            and not item.get("payload", {}).get("isError")
+            and args.expected_text in str(item.get("payload", {}).get("result", ""))
+            for item in activity
+        )
+        result = run.get("result") or {}
+        if run.get("status") != "done" or result.get("status") != "ok":
+            raise SystemExit("FAIL: QM turn did not complete successfully")
+        if not recalled or args.expected_text not in result.get("reply", ""):
+            raise SystemExit(f"FAIL: shared-brain retrieval did not answer {prompt!r}")
+        print(f"PASS: {prompt}")
+    print("PASS: both original prompts retrieved shared GBrain content without the answer in the prompt")
+
+
+if __name__ == "__main__":
+    main()

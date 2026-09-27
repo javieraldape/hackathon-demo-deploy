@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+service="${1:-all}"
+[[ $# -le 1 ]] || { echo 'Usage: scripts/stop [db|qm|gbrain|openclaw|all]' >&2; exit 2; }
+stop_session() {
+  if ! session "$1"; then return; fi
+  tmux kill-session -t "=$1"
+  for attempt in {1..20}; do
+    if ! listening "$2"; then return; fi
+    sleep 1
+  done
+  echo "Service on port $2 did not stop cleanly; inspect its private log" >&2
+  return 1
+}
+stop_qm() {
+  if [[ -d "$QM_SOURCE/.git" ]]; then
+    (cd "$QM_SOURCE" && QM_POOL_STORE="$QM_POOL_STORE" QM_DEV_ENV="$QM_DEV_ENV" bash scripts/dev-instance.sh down >/dev/null 2>&1) || echo 'QM shutdown failed; inspect private supervisor state' >&2
+  fi
+}
+stop_db() { if running "$DB_NAME"; then docker stop "$DB_NAME" >/dev/null; fi; }
+case "$service" in
+  db) stop_db;; qm) stop_qm;; gbrain) stop_session "$GBRAIN_SESSION" 3131;; openclaw) stop_session "$CLAW_SESSION" 30650;;
+  all) stop_session "$CLAW_SESSION" 30650; stop_qm; stop_session "$GBRAIN_SESSION" 3131; stop_db;;
+  *) echo 'Usage: scripts/stop [db|qm|gbrain|openclaw|all]' >&2; exit 2;;
+esac
+"$REPO_ROOT/scripts/status"

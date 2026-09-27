@@ -1,0 +1,24 @@
+# QMSum AMI meetings bounded sample
+
+Three public **AMI Product** meeting transcripts from [Yale-LILY/QMSum](https://github.com/Yale-LILY/QMSum) test multi-turn retrieval and query-grounded summarization. They do **not** contain fact-level ACL truth, permission labels, or a natural scoped-access policy. Meeting roles are speakers, not authorization rules. We deliberately excluded the Committee domain because its underlying parliamentary material has different third-party terms; this sample includes only the clearly CC BY-licensed AMI source.
+
+## Contents and transformations
+
+- `corpus/ES2004{a,b,c}.json`: 3 consecutive AMI Product/test meetings, 1,452 total speaker turns; only the original `meeting_transcripts` arrays, with their entries and order unchanged. JSON was split and reformatted (indentation/Unicode serialization changed), not rewritten or summarized. This is the **only ingest corpus**.
+- `labels/ES2004{a,b,c}.json`: the other original QMSum fields, including 27 general/specific query-answer pairs and their available relevant turn-index spans, plus topic spans. These are evaluation labels and must not enter the retriever. `manifest.json` has SHA-256 hashes of the three original complete source JSONs and of each split output. Some general queries apply to the whole meeting and have no spans; spans are not fact-level security labels.
+
+## Provenance and redistribution (retrieved 2026-09-27)
+
+Pinned QMSum repository revision: [`83d7768c1f2b4dfeb091385d3dc7e239b8e5bb7e`](https://github.com/Yale-LILY/QMSum/tree/83d7768c1f2b4dfeb091385d3dc7e239b8e5bb7e), files `data/Product/test/ES2004{a,b,c}.json`. Raw URLs have the form `https://raw.githubusercontent.com/Yale-LILY/QMSum/83d7768c1f2b4dfeb091385d3dc7e239b8e5bb7e/data/Product/test/ES2004a.json` (substitute meeting ID). The QMSum [repository LICENSE](https://github.com/Yale-LILY/QMSum/blob/83d7768c1f2b4dfeb091385d3dc7e239b8e5bb7e/LICENSE) is MIT, copyright © 2021 Yale-LILY. Crucially, the underlying [AMI Meeting Corpus and annotations license](https://groups.inf.ed.ac.uk/ami/corpus/license.shtml) expressly says **CC BY 4.0**, allowing sharing and adaptation with attribution and indication of changes. This is separate from QMSum's MIT license; the sample retains both notices. Credit: AMI Meeting Corpus, University of Edinburgh/AMI Consortium, and QMSum by Zhong et al. (NAACL 2021), [paper](https://aclanthology.org/2021.naacl-main.472/). No affiliation or endorsement is implied. Changes: partitioned transcript and annotations into separate JSON files; formatting changed, content/order preserved.
+
+| Original file | SHA-256 |
+| --- | --- |
+| `ES2004a.json` | `911e56db0d8482f1e730bae0a8fcf0ab0095c94abb000ba0516e975fa6e48b31` |
+| `ES2004b.json` | `5ed3c79e6784827652a2cdfaf2922c377aa386d8501b4a2039e51fb00a4d294d` |
+| `ES2004c.json` | `31815196407111dba01f8b8cbfa31cd07fb8a682e4005bae7846893ab93a6778` |
+
+CC BY 4.0 license: https://creativecommons.org/licenses/by/4.0/ . MIT permission notice for QMSum: Copyright (c) 2021 Yale-LILY. Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: the above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Recreate and expand
+
+Run `python3 eval-data/meetings/fetch.py` and `python3 eval-data/meetings/validate.py`. The standard-library fetcher verifies the raw pinned-revision hashes and deterministically splits original JSON fields. `.source/` is a transient raw-provenance cache, not a delivered file; the published manifest preserves its checksums. To add a Product/test AMI meeting, find its filename at the pinned repository revision and independently determine its SHA-256, then run `python3 eval-data/meetings/fetch.py --expand ES2004d --sha256 <64-hex-digest>`. The new transcript goes into `expanded/corpus/`, its labels into `expanded/labels/`, and neither changes the bounded sample manifest. Inspect underlying licenses separately before using other QMSum domains.

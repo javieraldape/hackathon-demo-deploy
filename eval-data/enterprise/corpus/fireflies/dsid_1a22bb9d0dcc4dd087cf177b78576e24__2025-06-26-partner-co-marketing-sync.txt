@@ -1,0 +1,286 @@
+Redwood x SkyForge Cloud — benchmark report co-marketing sync (embargo + newsletter)
+
+Redwood and SkyForge aligned on a co-marketing plan for Redwood’s public benchmark report launch. SkyForge will place a newsletter blurb in the July issue and optionally amplify via marketplace/social, contingent on receiving final copy + a compliant “how we measured” snippet and approved visuals under embargo. Redwood will provide a partner-ready copy block with conservative claims (no “fastest overall” language), a co-branded image, UTM-tagged links, and an embargoed briefing doc. Both teams agreed to a 24–48 hour approval buffer and a single source-of-truth for the headline metrics and disclaimers.
+Embargo date/time alignment and pre-brief logistics
+Shared messaging: latency/$ framing, disclaimers, and what not to claim
+Newsletter placement details (slot, word count, CTA, UTM)
+Asset list: co-branded image, landing page URL, PDF link, webinar mention
+Approval workflow (brand + legal) and timeline
+Can SkyForge reference specific regions (e.g., EU) in the newsletter, or should it stay generic?
+Do we include the webinar CTA in the same newsletter slot, or keep it to the landing page?
+What’s the latest time SkyForge can receive “final-final” assets and still hit send?
+Should we avoid any competitor mention entirely in partner channels?
+Redwood to send embargo details + partner briefing one-pager (incl. approved claim language + disclaimers) by 2025-06-27 EOD PT.
+SkyForge to confirm newsletter placement (date, audience segment, character limits) and provide UTM requirements by 2025-06-28.
+Redwood to deliver two copy variants (short/long) + one co-branded image + link bundle by 2025-07-01.
+SkyForge to run internal brand/legal review and return edits by 2025-07-03.
+Both teams to schedule a 15-min final go/no-go the day before launch.
+Noura El-Khoury — Send SkyForge embargo + launch timeline + review checkpoints — due 2025-06-27
+Soojin Lee — Provide partner-safe messaging block (what we can/can’t say) and approved headline metric phrasing — due 2025-06-27
+Ben Carter — Generate UTM-tagged links for newsletter + marketplace listing + social — due 2025-07-01
+Wei Chen — Package “methodology in 5 bullets” snippet + disclaimer text for partner use — due 2025-07-01
+Priya Desai — Confirm newsletter issue date, placement, and word-count/format constraints — due 2025-06-28
+Evan Brooks — Confirm whether marketplace banner/module is available during launch week — due 2025-06-28
+Meeting Header
+Date: Jun 26, 2025
+Start time: 10:00 AM PT
+Duration: 46 min
+Attendees: Noura El-Khoury, Soojin Lee, Ben Carter, Wei Chen (Redwood Inference); Priya Desai, Evan Brooks, Marta Kowalczyk (SkyForge Cloud)
+
+[00:00] Noura El-Khoury: Cool, recording just started. Thanks everybody for making time. This is our partner co-marketing sync for the benchmark report launch. Goal today is embargo timing, messaging alignment, and the newsletter placement details. Priya, Evan, Marta — thanks for joining.
+
+[00:18] Priya Desai: Yeah, of course. We’ve been looking forward to this. We just want to make sure we’re, you know, not stepping on any legal landmines with benchmarks.
+
+[00:27] Soojin Lee: Same. We are very, very allergic to “fastest” claims unless they’re narrowly scoped with methodology. So we’ll keep it clean.
+
+[00:36] Ben Carter: And also make sure the links are measurable. We’ll do UTMs so both sides can attribute.
+
+[00:43] Evan Brooks: Great. I can cover the newsletter mechanics and what our marketplace team can do.
+
+[00:50] Noura El-Khoury: Perfect. Quick agenda: one, embargo and dates. Two, the copy block and what we want SkyForge to say. Three, where it lands — newsletter, maybe marketplace, maybe social. Four, review process.
+
+[01:06] Noura El-Khoury: On embargo: we’re targeting launch week in early July. We’re still finalizing the exact day internally because legal review is… doing legal review.
+
+[01:17] Marta Kowalczyk: (laughs) Always.
+
+[01:19] Noura El-Khoury: Yeah. The current plan is a public landing page plus interactive table plus PDF report. We’d like to pre-brief you under embargo so your comms can go out same day.
+
+[01:35] Priya Desai: What does “under embargo” mean for you? Like we can have it in our scheduling tool but not send? Or we can’t even share internally?
+
+[01:44] Soojin Lee: You can share internally with folks who need to approve — marketing leadership, brand, legal — but we’ll ask you to keep it on a need-to-know list and not forward broadly.
+
+[01:55] Wei Chen: We can also provide a short “partner briefing” PDF so it’s not like the full 30-page report flying around.
+
+[02:03] Evan Brooks: That helps. Our standard is we can accept embargoed assets 5 business days before send. If it’s shorter than that, it’s still possible but risk.
+
+[02:14] Noura El-Khoury: Understood. We can commit to a partner pack by July 1 at the latest. Does that still work for your July newsletter issue?
+
+[02:24] Priya Desai: The July issue has two waves. One is July 9, the other is July 16. If you’re launching week of the 8th, we can try to align with the 9th.
+
+[02:36] Ben Carter: That’s great. If our launch is the 9th, we’d want you to send the same day, ideally within a few hours.
+
+[02:44] Evan Brooks: Usually our send is 8am Pacific.
+
+[02:48] Soojin Lee: That’s fine as long as the landing page is live. We’ll coordinate exact hour.
+
+[02:55] Noura El-Khoury: Ok. Let’s assume: Redwood launch day July 9, SkyForge newsletter July 9 at 8am PT, pending our final confirmation.
+
+[03:08] Priya Desai: Works as a placeholder. We’ll need final assets no later than July 3 for approvals, realistically.
+
+[03:14] Noura El-Khoury: Yep, we can do that.
+
+[03:17] Noura El-Khoury: Messaging. So the headline we’re using publicly is around “latency per dollar” — basically production inference economics. It’s not just tokens per second. It normalizes cost and latency.
+
+[03:31] Marta Kowalczyk: Is it literally written as latency slash dollar? Like “latency/$”? That can look a little… crypto.
+
+[03:38] Soojin Lee: (laughs) We’ve had that debate internally too. In partner channels we can write it as “latency-per-dollar (latency/$)” once, then just “latency-per-dollar.”
+
+[03:51] Priya Desai: Ok. And are you comparing against other providers? Or is it just Redwood across regions.
+
+[03:57] Soojin Lee: The public report is Redwood-first. We may include limited contextual baselines with strong caveats, but partner copy should not mention competitors. That’s the safest path.
+
+[04:09] Wei Chen: We will include a methodology snippet: models tested, regions, concurrency, prefill/decode mix, caching policy. But in the newsletter we keep it to a couple bullets.
+
+[04:21] Evan Brooks: Can you give us a single sentence we can reuse that’s legally blessed?
+
+[04:26] Soojin Lee: Yes. Something like: “Redwood published a reproducible benchmark on production inference economics across multiple regions, including p50/p95 latency and cost-per-1M tokens, with full methodology and configs.”
+
+[04:41] Priya Desai: Nice. And then what’s the CTA? Is it “read report” or “try Redwood” or something.
+
+[04:48] Ben Carter: Ideally “Explore the interactive benchmark” as primary, and secondary “Get started with hosted API” for developers. But we can tailor if your audience is more enterprise.
+
+[05:01] Evan Brooks: Our newsletter audience is mixed: cloud architects, some devs. But the highest click-through is usually “interactive” tools, not PDFs.
+
+[05:10] Ben Carter: Perfect. We’ll set the main link to the interactive page and include a small “Download PDF” secondary link if there’s room.
+
+[05:20] Noura El-Khoury: The other thing is we want to include a SkyForge angle. Not “we ran it on SkyForge GPUs” — because we didn’t — but more like: Redwood supports deployments across hosted/dedicated/private and runs in cloud environments like SkyForge.
+
+[05:36] Evan Brooks: Careful: we should not imply it runs on SkyForge unless there’s a marketplace listing or validated integration.
+
+[05:42] Noura El-Khoury: Right. Good call. We can position it as “available via SkyForge Marketplace” if that’s accurate.
+
+[05:48] Evan Brooks: It is accurate; your listing is live, but it’s currently a “contact us” style listing, not click-to-deploy. We can still feature it.
+
+[05:58] Priya Desai: If you want to mention marketplace, we need the exact listing name and URL.
+
+[06:04] Ben Carter: I’ll generate UTMs for that too.
+
+[06:07] Wei Chen: Also: disclaimers. We’ll give you a short disclaimer text that says results vary by workload, measured on specific configs, and so on.
+
+[06:18] Marta Kowalczyk: In the newsletter, do you want us to include disclaimers? We usually have limited space.
+
+[06:23] Soojin Lee: Ideally a short one-liner like “See methodology for details; results vary by workload and configuration.” And we can link “methodology” to the section on the landing page.
+
+[06:35] Priya Desai: That’s doable.
+
+[06:37] Noura El-Khoury: Next: placement. Priya, can you talk us through the constraints? Like word count, image, etc.
+
+[06:45] Priya Desai: Sure. The newsletter module is typically 70–120 words with one image. If you want two links, that’s fine, but we prefer a single primary link. We can do a headline, short body, then a CTA button.
+
+[07:01] Ben Carter: Great. We’ll give you a headline + 2 variants: 80 words and 120 words.
+
+[07:06] Evan Brooks: We can also add a marketplace tile same week, but that’s separate. That requires creative in 1200x628 and a short blurb.
+
+[07:15] Noura El-Khoury: That’s interesting. Is that guaranteed inventory or “best effort”?
+
+[07:20] Evan Brooks: More like best effort unless we reserve it this week. I can check.
+
+[07:26] Marta Kowalczyk: If you do marketplace tile, please keep the copy more product-y than “benchmark-y.” Like “Optimize inference economics” not “we beat X.”
+
+[07:36] Soojin Lee: 100%.
+
+[07:38] Noura El-Khoury: Ok, so far. Let’s talk approvals and what’s sensitive. Soojin, can you outline what phrases we want to avoid.
+
+[07:46] Soojin Lee: Yes. Avoid: “fastest,” “best,” “industry-leading,” “number one,” anything absolute. Avoid implying SkyForge endorses the benchmark results. Avoid competitor call-outs. And don’t say “guaranteed savings.” Instead: “measured,” “observed,” “in our tests,” “see methodology.”
+
+[08:06] Priya Desai: That’s consistent with our policy too.
+
+[08:09] Wei Chen: We’ll include an approved “safe language” block so your team can copy/paste.
+
+[08:16] Evan Brooks: Quick question: are you guys using time-to-first-token? Our audience asks for that.
+
+[08:22] Soojin Lee: We have TTFT for streaming, but we’re debating how much to highlight it in v1. The main metric is latency-per-dollar with p50/p95 latency and cost per million tokens as supporting.
+
+[08:36] Marta Kowalczyk: If you don’t have TTFT public, don’t mention it in our channel.
+
+[08:41] Soojin Lee: Agree.
+
+[08:43] Noura El-Khoury: Ok. Now, timeline check. Redwood will send partner pack by July 1. SkyForge needs final by July 3. Can we do a two-step: “draft assets” by July 1, “final assets” by July 3?
+
+[08:57] Priya Desai: That’s fine as long as the draft is 90% there. Our legal hates last-minute changes.
+
+[09:04] Soojin Lee: Understood. The only changes between draft and final should be numbers or date/time, not core claims.
+
+[09:11] Ben Carter: And from tracking perspective, if the URL changes, we’ll redirect. But ideally it won’t.
+
+[09:18] Noura El-Khoury: Let’s talk about the “shared messaging” angle. We want to position Redwood as developer-first inference platform, and SkyForge as a cloud partner enabling workloads. We don’t want it to feel like a random benchmark drop.
+
+[09:33] Priya Desai: For our newsletter, we typically frame it as “Partner Spotlight” or “New Research.” What’s your preference?
+
+[09:40] Soojin Lee: “New research” works, but I’d avoid “research” if it implies academic. Maybe “New benchmark report.”
+
+[09:49] Marta Kowalczyk: “Benchmark report” is fine.
+
+[09:52] Evan Brooks: Also, we can add a line: “Now available via SkyForge Marketplace.” That ties it back.
+
+[09:59] Noura El-Khoury: Great.
+
+[10:02] (small crosstalk)
+
+[10:03] Ben Carter: On UTMs: we’ll provide one link for newsletter and one for marketplace tile. Then you’ll see performance in your own analytics, and we’ll see it in ours.
+
+[10:12] Priya Desai: We can’t always guarantee UTMs stay intact because of our link wrapper, but we can try.
+
+[10:17] Ben Carter: Totally. If you have your own link wrapper parameters, send them and we’ll integrate.
+
+[10:24] Noura El-Khoury: Ok. Let’s pause and see if there are any concerns.
+
+[10:28] Priya Desai: Biggest concern is we don’t want our brand associated with “Redwood is cheaper than AWS” or something like that.
+
+[10:34] Soojin Lee: Same. We will not put that in partner assets.
+
+[10:38] Priya Desai: Second is timing. If Redwood slips by a week, does your team still want the July 9 slot?
+
+[10:45] Noura El-Khoury: If we slip, we may move you to July 16. We’ll give you a firm go/no-go 48 hours ahead.
+
+[10:53] Evan Brooks: Ok, just let us know. If you’re not live, we can’t run the module.
+
+[11:00] Wei Chen: Also: asset sizes. We’ll deliver a 1200x628, plus an SVG logo lockup if needed.
+
+[11:08] Marta Kowalczyk: Please no SVG in email. PNG is safer.
+
+[11:12] Wei Chen: Got it.
+
+[11:14] Noura El-Khoury: I want to spend a few minutes on the “embargo brief.” It’ll have: what’s launching, what’s new, approved copy, FAQ responses if people ask “how did you measure.”
+
+[11:28] Priya Desai: Can you add a short “if asked about competitor baselines” line? Even if we don’t mention, people might reply.
+
+[11:35] Soojin Lee: Yes. Something like: “The report focuses on Redwood performance; any comparisons are contextual and methodology-bound. For details, refer to the methodology section.”
+
+[11:46] Priya Desai: Perfect.
+
+[11:48] Evan Brooks: If we do marketplace tile, we’ll need a short headline like 45 characters. And a subhead maybe 90.
+
+[11:56] Noura El-Khoury: We can provide that. Something like “Explore latency-per-dollar benchmarks” and “Interactive results by region and model.”
+
+[12:06] Marta Kowalczyk: I’d avoid “by model” if model names are sensitive. But I think it’s okay.
+
+[12:11] Soojin Lee: The landing page will have a curated model set; it’s fine to say “by model.”
+
+[12:16] Ben Carter: Also, we’re doing a webinar the following week. Optional: include “Join the webinar” as a secondary CTA, but only if there’s room.
+
+[12:26] Priya Desai: I would not include that in the main module. Too many CTAs reduces clicks.
+
+[12:30] Noura El-Khoury: Fair. We can keep webinar on landing page.
+
+[12:34] Wei Chen: We’ll add a small callout on the landing page “Live walkthrough on X date.”
+
+[12:40] Evan Brooks: Ok.
+
+[12:42] Noura El-Khoury: Jumping ahead — review workflow. We’ll send copy + image + link bundle to Priya and Evan. You route to your legal/brand. We’ll have Soojin + our legal review any edits. Turnaround target 24 hours.
+
+[12:57] Priya Desai: Great. Please put everything in one doc. If it’s scattered across email threads, it gets messy.
+
+[13:04] Ben Carter: We can do a single Google doc plus a zip for images.
+
+[13:08] Priya Desai: Perfect.
+
+[13:10] (brief pause)
+
+[13:12] Marta Kowalczyk: Can I ask a dumb question? What exactly is “latency per dollar.” Like the denominator is GPU cost? Token cost? People will ask.
+
+[13:20] Soojin Lee: Not dumb. In the report, we define it as end-to-end request latency normalized by the effective cost of generating the output under the same config. It’s computed from measured throughput and our published price-per-token for hosted, plus infrastructure costs for dedicated contexts where applicable. But again, partner copy should just say “latency-per-dollar metric; see methodology.”
+
+[13:44] Wei Chen: We’ll give you a one-sentence explanation that is not math-heavy.
+
+[13:49] Marta Kowalczyk: Great.
+
+[13:51] Evan Brooks: Another question: are you going to say “regions: North America, Europe, APAC”? We like that global angle.
+
+[13:58] Noura El-Khoury: Yes, we can say “multiple regions” and list them generically. If we list specific region codes, we have to make sure they’re supported and stable. Lukas from EMEA is pretty sensitive about that.
+
+[14:12] Priya Desai: For us, “EU and US coverage” is good enough.
+
+[14:16] Soojin Lee: Great.
+
+[14:18] Ben Carter: From a performance standpoint, we’ll also have an on-page disclaimer about variance and reruns. That’s good to point to.
+
+[14:25] Priya Desai: Good.
+
+[14:27] Noura El-Khoury: Ok, Evan, can you confirm next steps on your side: newsletter slot and marketplace tile check.
+
+[14:34] Evan Brooks: Yes. I’ll confirm by tomorrow whether we can reserve a marketplace module for that week. Newsletter slot is available for July 9, but we need final by July 3.
+
+[14:45] Noura El-Khoury: Great.
+
+[14:46] Priya Desai: And I’ll confirm the word count and the exact template — headline limit, CTA button text.
+
+[14:53] Noura El-Khoury: Perfect.
+
+[14:55] (The conversation continues with minor clarifications on formatting and tracking)
+
+[15:02] Ben Carter: Button text — would “Explore benchmark” fit? Or do you prefer “Learn more.”
+
+[15:06] Priya Desai: “Explore benchmark” is fine. “Learn more” is too generic.
+
+[15:10] Wei Chen: Great.
+
+[15:12] Soojin Lee: And for the headline, something like “New: Benchmarking production inference economics.”
+
+[15:18] Marta Kowalczyk: That’s good. Just don’t make it sound like a “survey.”
+
+[15:22] Soojin Lee: Yep.
+
+[15:25] Noura El-Khoury: Ok, we’re at time. Let me recap and then we’ll drop.
+
+[15:30] Noura El-Khoury: Recap: Target send date July 9 8am PT, pending Redwood final launch confirmation. Redwood delivers draft partner pack July 1: copy variants, one image, link bundle with UTMs, and a short methodology/disclaimer snippet. SkyForge confirms constraints and optional marketplace tile by June 28, and provides edits back by July 3. We do a quick go/no-go the day before.
+
+[15:56] Priya Desai: Sounds right.
+
+[15:58] Evan Brooks: Yep.
+
+[16:00] Marta Kowalczyk: Thanks everyone.
+
+[16:02] Noura El-Khoury: Thank you. We’ll follow up by email today with the action items.
+
+(Transcript ends — Fireflies note: some sections were not captured due to crosstalk and brief audio drop around 10:02.)

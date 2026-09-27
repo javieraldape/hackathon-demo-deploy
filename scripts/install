@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+require git; require npm; require node; require bun; require docker; require openssl; require tmux; require ss; require uv; require python3
+docker info >/dev/null
+if existing "$DB_NAME" && [[ ! -f "$DEMO_RUNTIME_ROOT/credentials/postgres.env" || ! -f "$QM_DEV_ENV" ]]; then
+  echo 'Existing PostgreSQL has no private env pair; run scripts/adopt-live before install' >&2; exit 1
+fi
+umask 077
+mkdir -p "$DEMO_RUNTIME_ROOT/credentials" "$CLAW_STATE" "$GBRAIN_HOME" "$DEMO_RUNTIME_ROOT/../tools"
+if [[ ! -d "$QM_SOURCE/.git" ]]; then
+  git clone "$QM_REPOSITORY" "$QM_SOURCE"
+  git -C "$QM_SOURCE" checkout --detach "$QM_COMMIT"
+fi
+[[ "$(git -C "$QM_SOURCE" rev-parse HEAD)" = "$QM_COMMIT" ]] || { echo 'QM source is not the pinned commit' >&2; exit 1; }
+if [[ ! -d "$GBRAIN_SOURCE/.git" ]]; then
+  git clone --branch "$GBRAIN_TAG" --single-branch "$GBRAIN_REPOSITORY" "$GBRAIN_SOURCE"
+fi
+[[ "$(git -C "$GBRAIN_SOURCE" rev-parse HEAD)" = "$GBRAIN_COMMIT" ]] || { echo 'GBrain source is not the pinned tag' >&2; exit 1; }
+[[ -f "$GBRAIN_SOURCE/patches/postgres@3.4.9.patch" ]] || { echo 'Pinned GBrain patch missing' >&2; exit 1; }
+"$REPO_ROOT/scripts/apply-patches" "$QM_SOURCE" "$REPO_ROOT/patches/qm-trusted-memory.patch"
+"$REPO_ROOT/scripts/apply-patches" "$GBRAIN_SOURCE" "$REPO_ROOT/patches/gbrain-scoped-bridge.patch"
+(cd "$QM_SOURCE" && npm ci && npm --prefix plugins/web-ui ci && npm run build:connector-sdk && npm --prefix plugins/web-ui run build)
+(cd "$QM_SOURCE" && npm run sandbox:local:build)
+(cd "$GBRAIN_SOURCE" && GBRAIN_NO_AUTOPILOT_INSTALL=1 bun install --frozen-lockfile --ignore-scripts)
+uv venv --allow-existing --python 3.13 "$DEMO_RUNTIME_ROOT/../tools/typesafe-sdk"
+uv pip install --python "$DEMO_RUNTIME_ROOT/../tools/typesafe-sdk/bin/python" --require-hashes -r "$REPO_ROOT/jev/requirements.txt"
+mkdir -p "$CLAW_PACKAGE"
+cp "$REPO_ROOT/openclaw/package.json" "$REPO_ROOT/openclaw/package-lock.json" "$CLAW_PACKAGE/"
+npm --prefix "$CLAW_PACKAGE" ci --omit=dev
+node - "$CLAW_PACKAGE" "$OPENCLAW_VERSION" <<'JS'
+const [root, version] = process.argv.slice(2);
+for (const name of ['openclaw', '@openclaw/codex']) {
+  if (require(`${root}/node_modules/${name}/package.json`).version !== version) {
+    throw new Error(`Pinned ${name} package version mismatch`);
+  }
+}
+JS
+"$REPO_ROOT/scripts/apply-patches" "$CLAW_PACKAGE/node_modules/openclaw" \
+  "$REPO_ROOT/patches/openclaw-01-detach.patch" "$REPO_ROOT/patches/openclaw-02-arm-touch.patch"
+if [[ ! -e "$DEMO_RUNTIME_ROOT/credentials/postgres.env" && ! -e "$QM_DEV_ENV" ]]; then
+  if existing "$DB_NAME"; then
+    echo 'Postgres already exists: supply matching private credentials instead of generating a new password' >&2; exit 1
+  fi
+  password="$(openssl rand -hex 32)"
+  printf 'POSTGRES_USER=postgres\nPOSTGRES_DB=qm\nPOSTGRES_PASSWORD=%s\n' "$password" > "$DEMO_RUNTIME_ROOT/credentials/postgres.env"
+  printf 'DATABASE_URL=postgresql://postgres:%s@127.0.0.1:55432/qm\nHARNESS=codex\nCODEX_AUTH_FILE=%s/credentials/codex/auth.json\n' \
+    "$password" "$DEMO_RUNTIME_ROOT" > "$QM_DEV_ENV"
+  chmod 600 "$DEMO_RUNTIME_ROOT/credentials/postgres.env" "$QM_DEV_ENV"
+  unset password
+elif [[ ! -f "$DEMO_RUNTIME_ROOT/credentials/postgres.env" || ! -f "$QM_DEV_ENV" ]]; then
+  echo 'Private Postgres/QM env pair is incomplete; repair it manually' >&2; exit 1
+fi
+require_private "$DEMO_RUNTIME_ROOT/credentials/postgres.env"
+require_private "$QM_DEV_ENV"
+echo 'Pinned sources and packages installed. Restore private state before starting services.'

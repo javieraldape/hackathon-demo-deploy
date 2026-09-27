@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+require() { command -v "$1" >/dev/null || { echo "Missing prerequisite: $1" >&2; exit 1; }; }
+require sudo; require iptables; require ip6tables
+sudo -n true || { echo 'Passwordless sudo required to protect QM dev ports' >&2; exit 1; }
+for tool in iptables ip6tables; do
+  rule=(INPUT -i eth0 -p tcp -m multiport --dports 8081,8097,8113,8129 -j REJECT)
+  if ! sudo -n "$tool" -w -C "${rule[@]}" >/dev/null 2>&1; then
+    sudo -n "$tool" -w -I "${rule[@]}" >/dev/null
+  fi
+done
+echo 'QM dev ports blocked on eth0 (IPv4/IPv6); lo and docker0 retained.'

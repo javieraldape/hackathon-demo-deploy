@@ -1,0 +1,160 @@
+Orbit Sync — Product & Ops Bridge
+
+Meeting header:
+Date: 2026-05-06
+Start time: 09:00 PDT
+Recorded at: Zoom / All-hands stream
+Duration: ~54 minutes (we ran a bit long)
+Attendees: company-wide (see attendee roster above)
+
+Agenda (loosely):
+1) Quick leadership updates (revenue, hiring, product milestones)
+2) Engineering/Infra deep-dive: Dedicated & Private status
+3) Ops flags: cost, observability, incident review cadence
+4) Q&A + closing, next steps
+
+Summary:
+Priya opened with a short state-of-company note (growth steady but cautious on hiring). Evan and Omar gave a combined infra and performance update focused on recent latency wins and a new Dedicated runbook. Lena outlined a small reshuffle of the roadmap to prioritize Private v2 (customer-driven). There was a short ops discussion about cost per token improvements and a request to tighten incident review cadence. Action items captured and clear next steps for docs and drafts. A few questions about recruitment, SOC2 timelines, and Dedicated pricing; answers were high-level with follow-ups assigned.
+
+Topics (auto):
+- Hiring prioritization
+- Dedicated latency playbook
+- Private v2 customer asks
+- Cost control / batching improvements
+- Incident review cadence
+
+-- Transcript body (automatic timestamps, speaker labels approximate; some labels may be generic):
+[00:00] Priya Nair: Okay, good morning everyone, thanks for joining. Uh, I'm gonna keep this real short — we wanna make space for Evan and Omar to talk about infra wins and then Lena with product. Quick state: revenue growth is on target for the quarter, m-m growth sits around 4.2 percent, and NRR for enterprise cohort is holding at 111 percent. We are in a cautious hiring stance — prioritizing infra, SRE, and some senior product roles. More on that in a minute.
+
+[02:10] Evan Talmadge: Thanks Priya. Quick thanks to infra and the runtime team — last month we pushed several small but high impact kernel level changes that shaved median tail latency by ~7 percent for 2k token workloads on our Dedicated pools. There's a lot of noise in the telem so I'm gonna hand it to Omar to walk through the numbers.
+
+[03:04] Omar Aziz: Yeah hi, hey folks. So the handy numbers: on our benchmark bench with the 1.7b-ish variant we saw end-to-end median token latency drop from 48ms to 44.6ms when we enabled the new attention kernel and continuous batching tweaks. P95 moved too, but that's still a work in progress — P95 on heavy context still hits cloud network variability. Important — these wins translate to around 6-8% cost-per-token decrease when we look at sustained throughput. There is one caveat: for ultra-low latency SLOs we still need to pin to certain instance types.
+
+[04:22] Speaker 4 (inaudible): *[crosstalk]* — were these on-prem numbers or cloud?
+
+[04:30] Omar Aziz: Primarily cloud Dedicated pools — we did a small on-prem smoke test but it wasn't apples-to-apples. We'll publish a detailed runbook.
+
+[05:06] Lena Park: And from product's side we're adjusting the roadmap to accelerate Private v2 — this is mostly metadata: better key management, simpler on-prem install paths, and improved observability hooks so customers can bring their own tracing. The trigger was a set of enterprise deals where security and observability were the blockers.
+
+[06:18] Priya Nair: So hiring — heads up, we will freeze a handful of junior IC roles and reallocate budget toward 4 senior hires: 2 infra, 1 security, 1 product manager focused on Private. The reasoning is we want to shorten time-to-value for big enterprise pilots.
+
+[07:30] Samir Desai: From Sales — we have three mid-market accounts in pilot that are asking for Private or Dedicated pricing. They want predictable latency and clearer SSO/SAML provisioning timelines. We need the playbook so we can move deals.
+
+[08:10] Omar Aziz: We'll have a Dedicated latency playbook draft next week — it'll include recommended instance types, batching profiles, and fallback policies. Also we'll show how to configure KV cache prepop to reduce warm-starts.
+
+[09:01] Maya Ortiz (CSM): Quick ops note: we're seeing a handful of customers ask for longer audit log retention. We need to clarify pricing impact and storage back-end.
+
+[09:47] Priya Nair: Good point. Security/compliance is a running ask — update from legal: SOC2 Type II readiness is on track, external audit scheduled for late June. We'll publish the control matrix internally next Friday.
+
+[10:35] Evan Talmadge: On the technical roadmap: Optimizer recommendations (our Optimize toolkit) continues to drive value. We've seen a pilot where intelligent batching plus prefix caching reduced token count by roughly 12 percent on a conversation workload. That is real-dollar savings for customers and a lever for renewals.
+
+[11:58] Speaker 7: (someone off mic) — can you repeat the savings numerator again?
+
+[12:12] Evan Talmadge: Yeah sorry, the pilot showed a 12 percent reduction in generated tokens after applied caching + prompt de-dup heuristics — so if a customer was paying full token count, that's 12% less spend for the same output quality. Not guaranteed across workloads.
+
+[13:04] Lena Park: We're also introducing a new eval hook in the console so customers can tie regressions to prompt suites. That's gonna help product teams detect quality drift after a model swap.
+
+[14:10] Priya Nair: Okay, ops flags — cost is still a focus area. Finance wants a small margin improvement this quarter and requested a 2% reduction in cloud spend tied to inferencing. That is a stretch goal but doable with tighter batching defaults and improved autoscaling policies.
+
+[15:05] Omar Aziz: Actionable: we'll roll out new autoscaling presets targeted at steady-state throughput workloads. We expect a 3-4% cut in spend for those patterns. We'll monitor regressions.
+
+[16:00] Speaker 2 (generic): Any update on the Private on-prem install latency? A customer flagged slow bootstrap times.
+
+[16:12] Lena Park: Yep — Private v2 will include a simplified bootstrap script that reduces setup friction; most of the slow bootstrap cases are related to external network pulls and image sizes. We'll provide an offline bundle for air-gapped installs.
+
+[17:01] Samir Desai: Pricing question: for Dedicated vs Hosted, do we have a clearer market positioning? Some customers ask if Dedicated is "just more expensive hosted" — we need crisp language for go-to-market.
+
+[17:26] Priya Nair: Short answer: Dedicated is about predictable throughput, data isolation, and higher SLOs. Hosted is fastest to start. We'll publish sales collateral this week with TCO examples. Samir, you'll get a draft.
+
+[18:40] Evan Talmadge: Quick note on reliability: we've instrumented per-model rollout telemetry so if a canary shows perf regressions we can auto-roll back to the last known good model variant. That's in our console now but not broadly documented yet.
+
+[19:20] Omar Aziz: Also small FYI — we found a source of jitter in network egress on one cloud region that was affecting P95; the mitigation is to prefer a sibling region for Dedicated deployments until the provider completes a network fix. Ops and account teams will get a region-impact report.
+
+[20:10] Speaker 5 (someone from infra): Are we comfortable with our fallback variants? e.g. if a quantized variant has lower quality under certain prompts, do we have auto-fallback?
+
+[20:27] Evan Talmadge: We do, but it's model-dependent. The runtime supports policy-based routing: if a quality regression exceeds threshold on evals we'll route to a non-quantized variant. We need to make the thresholds easier to configure per-customer.
+
+[21:40] Priya Nair: Quick product restructure note — we'll centralize Private and Dedicated PMs under one group to speed cross-functional delivery for enterprise. Lena will lead this consolidated product pod.
+
+[22:05] Lena Park: Thanks. Practically that means faster prioritization meetings and tighter ship dates for Private v2 features, especially SSO and KMS integrations.
+
+[23:20] Audience Q&A begins (raised hands):
+[23:30] Speaker 6 (Eng lead): Are we doubling down on open models or proprietary ones? What does that mean for our model catalog?
+
+[23:50] Evan Talmadge: We're model-agnostic. The catalog will emphasize performance profiles and validated accuracy on standard evals. We'll continue to onboard popular open variants and also provide vetted model weights for customers who want consistency.
+
+[24:45] Speaker 7 (Sales): On SOC2 — will there be a customer-facing whitepaper?
+
+[24:56] Priya Nair: Yes, we'll publish a SOC2 readiness summary and an internal control matrix. For customers who need deeper info we'll route them to security for an NDA'd package.
+
+[25:40] Speaker 8 (new hire): Quick question about hiring — you said freeze junior roles, does that impact internships?
+
+[25:54] Priya Nair: Intern programs remain; we view them as a talent funnel. The freeze is on certain entry-level IC requisitions where we can hire contractors or interns instead.
+
+[27:10] Omar Aziz: One operational ask — incident reviews need to be faster. We're moving to a 48-hour postmortem cadence for Sev2s (was 5 business days). That includes an initial triage doc in 24 hours.
+
+[28:03] Speaker 9 (ops): Does that mean more time from SREs?
+
+[28:15] Omar Aziz: We'll balance via runbooks and small task rotations; the goal is faster remediation and fewer repeat incidents.
+
+[29:22] Evan Talmadge: On observability, console updates will include token-level cost breakdowns per route which will help PMs and finance see unit economics per feature. That lands in alpha next sprint.
+
+[30:08] Speaker 10 (product): Will the eval hooks be available for Hosted customers too?
+
+[30:20] Lena Park: Yes, the eval hook is part of the Redwood Console and will be available across deployment types; we'll gate some retention/advanced features behind enterprise tiers.
+
+[31:00] Short silence / background murmur — people typing into chat
+
+[31:30] Priya Nair: OK quick people update: we've filled a couple of tough roles — welcome to our new manager of platform reliability, Jordan Lee, and senior infra engineer, Aisha Khan. Please make them feel welcome.
+
+[32:12] Speaker 11 (HR): On benefits — a reminder: mental health allowance increase goes live next month.
+
+[33:05] Priya Nair: Alright, lightning round of wins: Engineering — thanks for the latency wins; Product — good traction on Private asks; Sales — strong pipeline motion on mid-market; CS — positive feedback on onboarding.
+
+[34:00] Samir Desai: Real quick — sales needs the Dedicated playbook to convert 3 deals this month. That remains urgent.
+
+[34:20] Omar Aziz: Understood. We'll fast-track a short playbook (playbook v0) with recommended instance types and a checklist for customer enablement.
+
+[35:45] Audience question (from chat): What are the new KPIs we should watch?
+
+[36:00] Priya Nair: Two operational KPIs: 1) unit economics per token per route (finance + product), and 2) time-to-onboard for Private pilots (CS + product). We'll share dashboards next week.
+
+[37:12] Evan Talmadge: Engineering KPI: P95 latency for Dedicated pools and failure rate per 10k requests. We'll add these to our run rate dashboard.
+
+[38:10] Short update on partner work: We're piloting a cloud-marketplace integration that could simplify procurement for enterprise customers. It's early but promising.
+
+[39:01] Speaker 12 (someone from security): KMS integration — timeline?
+
+[39:10] Lena Park: KMS (customer-managed keys) is in scope for Private v2 and targeted for an end-of-quarter release. We'll have an RFC up soon.
+
+[40:20] Priya Nair: Quick call-out — let's be mindful of messaging around cost. We don't want to overpromise savings; show examples and TCO math.
+
+[41:00] Evan Talmadge: On the model side, we are going to publish validated throughput numbers per model at various context lengths. That should help commercial teams set expectations.
+
+[42:10] Q&A slows down — people drop into smaller breakout rooms for follow ups
+
+[43:05] Priya Nair (closing): Thanks team. Recap of immediate next steps — Priya to share the hiring priority doc, Omar to share Dedicated playbook v0, Lena to gather customer asks for Private v2, Samir to get us the list of top expansion accounts. We'll reconvene on this at the next all-hands time slot if needed.
+
+[44:25] Speaker 13 (random): Two quick asks — can we get a public-facing primer on Hosted vs Dedicated and a one-pager for sales?
+
+[44:40] Samir Desai: I'll coordinate with product marketing and send a draft by EOW.
+
+[45:05] Small background applause / informal goodbyes
+
+[46:15] Transcript notes (auto):
+- Some parts of the call overlapped with chat commentary — paraphrased sections recorded.
+- Names and titles transcribed from calendar; occasional minor mis-hear of acronyms (e.g., KV cache heard as KV cash in one spot).
+
+[47:00] Priya Nair: Thank you everyone. If you have follow-ups, add them to the thread or ping the relevant owners. Have a good one.
+
+[48:30] End of meeting (stream stopped)
+
+-- End of transcript
+
+Priya to share Q2 hiring prioritization doc by 2026-05-10
+Omar to publish Dedicated latency playbook draft by 2026-05-14
+Lena to run product roadmap deep-dive with Eng leads week of 2026-05-11
+Priya Nair — finalize Q2 hiring slate — 2026-05-10
+Omar Aziz — compile Dedicated performance runbook (first draft) — 2026-05-14
+Lena Park — collect customer asks for Private v2 from CSMs — 2026-05-12
+Samir Desai — identify top 5 expansion accounts for Dedicated outreach — 2026-05-13

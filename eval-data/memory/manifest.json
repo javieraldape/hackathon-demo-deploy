@@ -1,0 +1,55 @@
+{
+  "retrieved_at": "2026-09-27T17:46:32.633561+00:00",
+  "source": {
+    "dataset": "xiaowu0162/longmemeval-cleaned",
+    "dataset_revision": "98d7416c24c778c2fee6e6f3006e7a073259d48f",
+    "file": "longmemeval_oracle.json",
+    "url": "https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned/resolve/98d7416c24c778c2fee6e6f3006e7a073259d48f/longmemeval_oracle.json",
+    "upstream_file_sha256": "821a2034d219ab45846873dd14c14f12cfe7776e73527a483f9dac095d38620c",
+    "repository": "xiaowu0162/LongMemEval",
+    "repository_revision_for_license": "9e0b455f4ef0e2ab8f2e582289761153549043fc",
+    "license": "MIT (Hugging Face dataset card metadata)"
+  },
+  "selection": {
+    "rule": "First four non-abstention records of each available question_type, plus first six abstention records, retaining source order.",
+    "source_record_count": 500,
+    "selected_record_count": 30,
+    "selected_question_types": {
+      "temporal-reasoning": 10,
+      "multi-session": 4,
+      "knowledge-update": 4,
+      "single-session-preference": 4,
+      "single-session-assistant": 4,
+      "single-session-user": 4
+    },
+    "selected_abstentions": 6,
+    "representation": "The upstream oracle records contain only answer-relevant history sessions; sessions/turns are kept in source order. Turn-level has_answer annotations are moved to labels.jsonl."
+  },
+  "transformations": [
+    "Separate history sessions (corpus.jsonl), prompts and question metadata (questions.jsonl), and gold answers/evidence labels (labels.jsonl).",
+    "Remove turn-level has_answer from the ingestible corpus and preserve it in labels.jsonl.",
+    "Represent original session IDs and dates with their unchanged turn role/content values."
+  ],
+  "artifacts": {
+    "corpus.jsonl": {
+      "sha256": "0934766a6d5a3152096265d43024a5c3f9140c4c747645844aa4d49af427d4c7",
+      "bytes": 833910
+    },
+    "questions.jsonl": {
+      "sha256": "581dcffcda13a7f4c6391be9ae52d4a6d659698f422a6ca02383fd0f7216c121",
+      "bytes": 6128
+    },
+    "labels.jsonl": {
+      "sha256": "dc0b8dd5854db2649da8bfea42480cd50ead579e74d49deb6622d34e70f3fb53",
+      "bytes": 56738
+    },
+    "source-card.md": {
+      "sha256": "fe31783d4e5d132681a25e4192e85def8edd214094939879f5283818c0a4a3e0",
+      "bytes": 626
+    },
+    "LICENSE.txt": {
+      "sha256": "d3c4b9aa54759df6ded337978a6f3b55b75615e5e4525c3b82d7e2627d4b9732",
+      "bytes": 1062
+    }
+  }
+}
