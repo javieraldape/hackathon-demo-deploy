@@ -139,11 +139,13 @@ index 8e996983..a165b632 100644
  | Tool | Description | Scope | Starter | Gate |
 diff --git a/integration/openclaw-telegram-capture/README.md b/integration/openclaw-telegram-capture/README.md
 new file mode 100644
-index 00000000..9038390f
+index 00000000..7a4edbf8
 --- /dev/null
 +++ b/integration/openclaw-telegram-capture/README.md
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,24 @@
 +# Private Telegram transcript handoff
++
++For repeatable lookup by a safe meeting name, the owner can use `/capture_meeting arm --public-title <exact marked transcript title>`. This explicitly approves only the title for shared lookup and stores that attestation in the native binding and capture receipt. The title must match the transcript's marked first line; transcript text cannot grant approval. Facts are still independently classified, and private facts never inherit shared placement. A plain capture with shared facts and a declined or uncertain marked title now refuses before publication with an actionable error instead of silently losing meeting-name retrieval. Close an existing binding before changing its public-title approval.
 +
 +This plugin does not provision or modify a live bot, brain, key, or data store. Install it only after the GBrain capture operation is registered in the **existing** HTTP server process and the scoped read gate rejects partial publication. No CLI ingest process may open the live PGLite directory while that server owns it.
 +
@@ -167,16 +169,17 @@ index 00000000..9038390f
 +The adapter otherwise looks up Telegram's runtime from the capture plugin's context during auto-approved arm or detach, throwing `Telegram runtime not initialized`. The patches retain the Telegram-owned store handle and persist binding creation/removal before changing the in-memory binding. They do not expand plugin privileges. An ordinary reply alone does not prove capture works: verify owner arm, close, and ordinary chat, then check the `telegram.thread-bindings` namespace in Telegram's plugin state. The generic `current_conversation_bindings` table does not represent this native adapter's bindings.
 diff --git a/integration/openclaw-telegram-capture/index.d.mts b/integration/openclaw-telegram-capture/index.d.mts
 new file mode 100644
-index 00000000..7bde10d9
+index 00000000..3be32e4a
 --- /dev/null
 +++ b/integration/openclaw-telegram-capture/index.d.mts
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,26 @@
 +export interface CaptureInput {
 +  text: string;
 +  accountId: string;
 +  conversationId: string;
 +  senderId: string;
 +  messageId: string;
++  publicTitle?: string;
 +}
 +
 +export function validateTranscript(text: unknown): string;
@@ -198,10 +201,10 @@ index 00000000..7bde10d9
 +export default plugin;
 diff --git a/integration/openclaw-telegram-capture/index.mjs b/integration/openclaw-telegram-capture/index.mjs
 new file mode 100644
-index 00000000..0aea8822
+index 00000000..3b9c9b6e
 --- /dev/null
 +++ b/integration/openclaw-telegram-capture/index.mjs
-@@ -0,0 +1,189 @@
+@@ -0,0 +1,226 @@
 +import { constants } from 'node:fs';
 +import { open } from 'node:fs/promises';
 +import { realpath } from 'node:fs/promises';
@@ -211,6 +214,14 @@ index 00000000..0aea8822
 +
 +const LIMIT = 20_000;
 +const COMMAND = 'capture_meeting';
++
++function validatePublicTitle(title) {
++  if (typeof title !== 'string' || !title.trim() || title.length > 160 ||
++      /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u.test(title) || /(^|\s)--/.test(title)) {
++    throw new Error('Public title must be a nonempty single line of at most 160 characters without controls or flags.');
++  }
++  return title.trim();
++}
 +
 +export function validateTranscript(text) {
 +  if (typeof text !== 'string' || !text.trim() || text.includes('\0') ||
@@ -253,6 +264,7 @@ index 00000000..0aea8822
 +
 +export async function captureTranscript(input, transport = fetch) {
 +  const text = validateTranscript(input.text);
++  const publicTitle = input.publicTitle === undefined ? undefined : validatePublicTitle(input.publicTitle);
 +  const url = process.env.GBRAIN_TELEGRAM_CAPTURE_MCP_URL;
 +  const tokenUrl = process.env.GBRAIN_TELEGRAM_CAPTURE_TOKEN_URL;
 +  const clientId = process.env.GBRAIN_TELEGRAM_CAPTURE_CLIENT_ID;
@@ -300,10 +312,19 @@ index 00000000..0aea8822
 +        conversation_id: input.conversationId,
 +        sender_id: input.senderId,
 +        message_id: input.messageId,
++        ...(publicTitle === undefined ? {} : { public_title: publicTitle }),
 +      },
 +    }, undefined, { timeout: 300_000 });
 +  } finally {
 +    await client.close();
++  }
++  if (body?.isError) {
++    for (const item of body.content ?? []) {
++      if (item.type !== 'text') continue;
++      let message;
++      try { message = JSON.parse(item.text).message; } catch { continue; }
++      if (typeof message === 'string' && message.startsWith('Shared meeting title')) throw new Error(message);
++    }
 +  }
 +  if (body?.isError && body.content?.some(item => {
 +    if (item.type !== 'text') return false;
@@ -322,7 +343,7 @@ index 00000000..0aea8822
 +}
 +
 +function failure(error) {
-+  if (error instanceof Error && /^(Transcript|Only a staged|Telegram message identity)/.test(error.message)) return error.message;
++  if (error instanceof Error && /^(Transcript|Only a staged|Telegram message identity|Shared meeting title)/.test(error.message)) return error.message;
 +  return 'Capture failed. No shared-memory fallback was attempted; an operator must inspect scoped publication before retrying.';
 +}
 +
@@ -353,13 +374,31 @@ index 00000000..0aea8822
 +            return { text: 'Capture binding status could not be verified. Ask an operator to inspect it before ordinary chat.' };
 +          }
 +        }
-+        if (args === 'arm') {
++        if (args === 'arm' || /^arm\s/.test(args)) {
++          let publicTitle;
++          if (args !== 'arm') {
++            const match = /^arm --public-title (.+)$/u.exec(ctx.args ?? '');
++            try {
++              if (!match) throw new Error('invalid arguments');
++              publicTitle = validatePublicTitle(match[1]);
++            } catch {
++              return { text: 'Use /capture_meeting arm --public-title <public label>: a nonempty single line of at most 160 characters, without controls or other flags. This label will be public.' };
++            }
++          }
 +          try {
 +            const result = await ctx.requestConversationBinding({
 +              summary: 'Private transcript handoff', detachHint: '/capture_meeting done',
++              ...(publicTitle === undefined ? {} : { data: { publicTitle } }),
 +            });
-+            if (result.status === 'pending') return result.reply;
-+            if (result.status === 'bound') return { text: 'Capture bound. Send one pasted transcript or UTF-8 .txt; use /capture_meeting done to return to ordinary chat.' };
++            const publicNotice = publicTitle === undefined ? '' : ` Public label (owner-approved): ${publicTitle}.`;
++            if (result.status === 'pending') return publicTitle === undefined ? result.reply
++              : { ...result.reply, text: `${result.reply.text ?? ''}${publicNotice}` };
++            if (result.status === 'bound') {
++              if (publicTitle !== undefined && result.binding?.data?.publicTitle !== publicTitle) {
++                return { text: 'The active capture binding does not contain that public label. Use /capture_meeting done first, then arm again with --public-title. Do not send the transcript yet.' };
++              }
++              return { text: `Capture bound.${publicNotice} Send one pasted transcript or UTF-8 .txt; use /capture_meeting done to return to ordinary chat.` };
++            }
 +            return { text: 'Private capture binding was refused. Do not send the transcript.' };
 +          } catch { return { text: 'Private capture binding failed; do not send the transcript until it is active.' }; }
 +        }
@@ -381,7 +420,8 @@ index 00000000..0aea8822
 +        const text = event.media?.length === 1
 +          ? await readTranscriptDocument(event.media[0]) : validateTranscript(event.content);
 +        const receipt = await captureTranscript({ text, accountId: ctx.accountId,
-+          conversationId: ctx.conversationId, senderId: event.senderId, messageId: event.messageId });
++          conversationId: ctx.conversationId, senderId: event.senderId, messageId: event.messageId,
++          publicTitle: ctx.pluginBinding.data?.publicTitle });
 +        return { handled: true, reply: { text: `${receipt} Use /capture_meeting done to return to ordinary chat.` } };
 +      } catch (error) {
 +        return { handled: true, reply: { text: failure(error) } };
@@ -1224,10 +1264,10 @@ index 00000000..a13d8c91
 +};
 diff --git a/src/core/ops/telegram-capture.ts b/src/core/ops/telegram-capture.ts
 new file mode 100644
-index 00000000..7c60859c
+index 00000000..3b146889
 --- /dev/null
 +++ b/src/core/ops/telegram-capture.ts
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,85 @@
 +import { createHash } from 'node:crypto';
 +import { mkdirSync, writeFileSync } from 'node:fs';
 +import { join } from 'node:path';
@@ -1264,6 +1304,7 @@ index 00000000..7c60859c
 +  area: 'ingest',
 +  params: {
 +    text: { type: 'string', required: true, description: 'UTF-8 transcript from the trusted Telegram transport.' },
++    public_title: { type: 'string', description: 'Explicit owner attestation from /capture_meeting arm --public-title; never inferred from transcript text.' },
 +    account_id: { type: 'string', required: true, description: 'Transport-derived OpenClaw Telegram account.' },
 +    conversation_id: { type: 'string', required: true, description: 'Transport-derived Telegram chat.' },
 +    sender_id: { type: 'string', required: true, description: 'Transport-derived Telegram sender.' },
@@ -1289,13 +1330,22 @@ index 00000000..7c60859c
 +    });
 +    assertScopedServeReady();
 +    assertNewScopedSource(sourceId);
-+    const facts = await classifyDocument({ text, sourceId });
++    const publicTitle = params.public_title;
++    if (publicTitle !== undefined && (typeof publicTitle !== 'string' || !publicTitle.trim() ||
++        publicTitle.length > 160 || /[\x00-\x1f\x7f]/.test(publicTitle))) {
++      throw new OperationError('invalid_params', 'Shared meeting title must be a bounded single-line explicit owner attestation. No memory was saved.');
++    }
++    const facts = await classifyDocument({ text, sourceId,
++      ...(publicTitle !== undefined ? { ownerApprovedPublicTitle: publicTitle as string } : {}),
++    });
 +    const receiptDir = join(scopedStateDir(), 'telegram-receipts');
 +    mkdirSync(receiptDir, { recursive: true, mode: 0o700 });
 +    writeFileSync(join(receiptDir, `${sourceId}.json`), JSON.stringify({
 +      sourceId, accountId: params.account_id, conversationId: params.conversation_id,
 +      senderId: params.sender_id, messageId: params.message_id,
 +      contentHash: createHash('sha256').update(text).digest('hex'), recordedAt: new Date().toISOString(),
++      ...(publicTitle !== undefined ? { publicTitleAttestation: { title: publicTitle,
++        policy: 'owner-explicit-public-title-v1', clientId: ctx.auth.clientId, senderId: params.sender_id } } : {}),
 +    }), { flag: 'wx', mode: 0o600 });
 +    const registration = await readLocalWriter(ctx.engine, 'cli');
 +    const receipt = await withVerifiedLocalRegistration(ctx.engine, registration, () =>
@@ -1380,10 +1430,10 @@ index 00000000..771e7376
 +}
 diff --git a/src/core/scopes/classify.ts b/src/core/scopes/classify.ts
 new file mode 100644
-index 00000000..dd8a2a62
+index 00000000..aba87183
 --- /dev/null
 +++ b/src/core/scopes/classify.ts
-@@ -0,0 +1,160 @@
+@@ -0,0 +1,175 @@
 +export type ClassifiedFact = {
 +  text: string;
 +  evidence: string;
@@ -1438,13 +1488,18 @@ index 00000000..dd8a2a62
 +  return { disposition: 'scoped', scopes, reason: 'Jev named-scope classification' };
 +}
 +
-+export async function classifyContextLabel(text: string, transport: Transport = fetch): Promise<ClassifiedFact['sharedContext'] | undefined> {
++function contextLabelCandidate(text: string): ClassifiedFact['sharedContext'] | undefined {
 +  const firstLine = text.split(/\r?\n/, 1)[0]?.trim() ?? '';
 +  const titleMatch = /^(?:Fictional meeting transcript|Meeting transcript|Meeting|Title): ([^\r\n]{1,160})$/.exec(firstLine);
 +  if (!titleMatch || titleMatch[1] !== titleMatch[1].trim()) return undefined;
++  return { text: titleMatch[1], evidence: firstLine };
++}
++
++export async function classifyContextLabel(text: string, transport: Transport = fetch): Promise<ClassifiedFact['sharedContext'] | undefined> {
++  const contextLabel = contextLabelCandidate(text);
++  if (!contextLabel) return undefined;
 +  const key = process.env.TYPESAFE_API_KEY;
 +  if (!key) throw new Error('Classification provider credentials are required');
-+  const contextLabel = { text: titleMatch[1], evidence: firstLine };
 +  const response = await transport('https://api.typesafe.ai/v1/systemone', {
 +    method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
 +    body: JSON.stringify({ state: { context_label: contextLabel }, model: 'jev-latest', questions: {
@@ -1460,12 +1515,18 @@ index 00000000..dd8a2a62
 +}
 +
 +export async function classifyDocument(
-+  input: { text: string; sourceId: string },
++  input: { text: string; sourceId: string; ownerApprovedPublicTitle?: string },
 +  transport: Transport = fetch,
 +): Promise<ClassifiedFact[]> {
 +  if (typeof input?.text !== 'string' || !input.text.trim() || input.text.length > MAX_DOCUMENT_LENGTH ||
 +      typeof input.sourceId !== 'string' || !input.sourceId.trim()) {
 +    throw new Error('Invalid or oversized classification input');
++  }
++  const candidate = contextLabelCandidate(input.text);
++  if (input.ownerApprovedPublicTitle !== undefined &&
++      (typeof input.ownerApprovedPublicTitle !== 'string' || !candidate ||
++       input.ownerApprovedPublicTitle !== candidate.text || /[\x00-\x1f\x7f]/.test(input.ownerApprovedPublicTitle))) {
++    throw new Error('Shared meeting title must exactly match the short single-line transcript title. No memory was saved.');
 +  }
 +  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 +  const typesafeKey = process.env.TYPESAFE_API_KEY;
@@ -1536,13 +1597,17 @@ index 00000000..dd8a2a62
 +    throw new Error('Incomplete fact classification');
 +  }
 +
-+  const contextLabel = await classifyContextLabel(input.text, transport);
-+  return facts.map((fact, index) => {
++  const contextLabel = input.ownerApprovedPublicTitle !== undefined ? candidate : await classifyContextLabel(input.text, transport);
++  const result = facts.map((fact, index) => {
 +    const classification = classifyAnswer((classified.answers as Record<string, unknown>)[`fact_${index}`]);
 +    return { ...fact, ...classification,
 +      ...(contextLabel && classification.disposition === 'public' ? { sharedContext: contextLabel } : {}),
 +    };
 +  });
++  if (contextLabelCandidate(input.text) && !contextLabel && result.some(fact => fact.disposition === 'public')) {
++    throw new Error('Shared meeting title was not approved; no memory was saved. If the exact title is safe for everyone, use /capture_meeting arm --public-title <exact transcript title>, then send the transcript. Otherwise use a genuinely non-sensitive title; do not retry unchanged to obtain a different classification.');
++  }
++  return result;
 +}
 diff --git a/src/core/scopes/identity.ts b/src/core/scopes/identity.ts
 new file mode 100644
@@ -2384,10 +2449,10 @@ index 00000000..8e0773af
 +}
 diff --git a/test/scopes-classify.test.ts b/test/scopes-classify.test.ts
 new file mode 100644
-index 00000000..56884845
+index 00000000..a9a2f119
 --- /dev/null
 +++ b/test/scopes-classify.test.ts
-@@ -0,0 +1,172 @@
+@@ -0,0 +1,194 @@
 +import { describe, expect, test as bunTest } from 'bun:test';
 +import { classifyDocument, type ClassifiedFact } from '../src/core/scopes/classify.ts';
 +import { planScopedPages } from '../src/core/scopes/write.ts';
@@ -2528,19 +2593,41 @@ index 00000000..56884845
 +    expect(pages.find(page => page.sourceId === 'mvp-hr-payroll')?.content).not.toContain('Context:');
 +  });
 +
-+  test('private or uncertain title never enters shared pages', async () => {
++  test('private or uncertain title aborts mixed publication before any shared page can be written', async () => {
 +    const title = 'Secret Juniper acquisition meeting';
 +    const document = `Meeting: ${title}\nLunch on Friday is public.\nHR case GARNET-LOOM-31 is confidential.`;
 +    const label = { text: title, evidence: `Meeting: ${title}` };
 +    const facts = ['Lunch on Friday is public.', 'HR case GARNET-LOOM-31 is confidential.'];
 +    for (const verdict of [answer('vault'), answer('public', 0.6)]) {
-+      const classified = await classifyDocument({ text: document, sourceId: 'private-title' },
++      await expect(classifyDocument({ text: document, sourceId: 'private-title' },
 +        mock(extraction(facts.map(text => ({ text, evidence: text }))),
-+          jev(['public', 'hr-payroll'], verdict), document));
-+      const pages = planScopedPages('private-title', document, classified);
-+      expect(pages.find(page => page.sourceId === 'mvp-shared')?.content).toContain('Lunch on Friday');
-+      expect(pages.find(page => page.sourceId === 'mvp-shared')?.content).not.toContain(title);
++          jev(['public', 'hr-payroll'], verdict), document))).rejects.toThrow('no memory was saved');
 +    }
++  });
++
++  test('a marked private title with no public facts remains safely vaultable', async () => {
++    const document = 'Meeting: Private medical review\nThe medical plan is private.';
++    const classified = await classifyDocument({ text: document, sourceId: 'private-only' },
++      mock(extraction([{ text: 'The medical plan is private.', evidence: 'The medical plan is private.' }]),
++        jev(['vault'], answer('vault')), document));
++    expect(planScopedPages('private-only', document, classified).every(page => page.sourceId === 'mvp-vault')).toBe(true);
++  });
++
++  test('explicit owner title approval requires exact marked title and never bypasses fact classification', async () => {
++    const document = 'Meeting: Lantern Forge\nLunch is public.\nMedical PRIVATE-42 is private.';
++    const extracted = extraction(['Lunch is public.', 'Medical PRIVATE-42 is private.'].map(text => ({ text, evidence: text })));
++    const facts = await classifyDocument({ text: document, sourceId: 'owner-title', ownerApprovedPublicTitle: 'Lantern Forge' },
++      mock(extracted, jev(['public', 'vault']), document));
++    expect(facts[0].sharedContext?.text).toBe('Lantern Forge');
++    expect(facts[1].disposition).toBe('vault');
++    expect(facts[1].sharedContext).toBeUndefined();
++    expect(planScopedPages('owner-title', document, facts).filter(page => page.sourceId === 'mvp-shared').map(page => page.content).join('')).not.toContain('PRIVATE-42');
++    for (const title of ['Other title', 'Lantern Forge\nPrivate', '']) {
++      await expect(classifyDocument({ text: document, sourceId: 'owner-title', ownerApprovedPublicTitle: title },
++        async () => { throw new Error('Provider must not run'); })).rejects.toThrow('Shared meeting title');
++    }
++    await expect(classifyDocument({ text: document, sourceId: 'owner-title', ownerApprovedPublicTitle: 'Lantern Forge' },
++      async () => new Response('', { status: 503 }))).rejects.toThrow('Fact extraction failed');
 +  });
 +
 +  test('malformed or missing title classification refuses the entire publication plan', async () => {
@@ -2835,10 +2922,10 @@ index 00000000..5c83b7ff
 +}, 120_000);
 diff --git a/test/telegram-capture.test.ts b/test/telegram-capture.test.ts
 new file mode 100644
-index 00000000..c60be47c
+index 00000000..f1da5d3f
 --- /dev/null
 +++ b/test/telegram-capture.test.ts
-@@ -0,0 +1,220 @@
+@@ -0,0 +1,268 @@
 +import { describe, expect, test } from 'bun:test';
 +import { telegramCaptureOperation, telegramSourceId } from '../src/core/ops/telegram-capture.ts';
 +import type { OperationContext } from '../src/core/ops/contract.ts';
@@ -2934,7 +3021,8 @@ index 00000000..c60be47c
 +    const input = { text: 'The canteen opens at noon.', accountId: 'primary',
 +      conversationId: '1234', senderId: '1234', messageId: '900' };
 +    const methods: string[] = [];
-+    let outcome: 'success' | 'failure' | 'duplicate' = 'success';
++    const capturedArguments: Record<string, unknown>[] = [];
++    let outcome: 'success' | 'failure' | 'duplicate' | 'title' = 'success';
 +    const server = Bun.serve({ hostname: '127.0.0.1', port: 0, async fetch(request) {
 +      const path = new URL(request.url).pathname;
 +      if (path === '/oauth/token') {
@@ -2959,13 +3047,15 @@ index 00000000..c60be47c
 +      })}\n\n`, { headers: { 'content-type': 'text/event-stream' } });
 +      expect(rpc.method).toBe('tools/call');
 +      expect(rpc.params?.name).toBe('capture_telegram_transcript');
++      capturedArguments.push(rpc.params!.arguments);
 +      expect(rpc.params?.arguments.message_id).toBe('900');
 +      expect(rpc.params?.arguments).not.toHaveProperty('source_id');
 +      const result = outcome === 'success'
 +        ? { content: [{ type: 'text', text: JSON.stringify({ state: 'committed',
 +          source_id: `telegram-${'a'.repeat(40)}`, facts: 2, pages: 3 }) }] }
 +        : { isError: true, content: outcome === 'failure' ? [] : [{ type: 'text', text: JSON.stringify({
-+          message: 'Source identity already ingested or reserved; updates are outside this MVP',
++          message: outcome === 'title' ? 'Shared meeting title requires an owner-approved public label.'
++            : 'Source identity already ingested or reserved; updates are outside this MVP',
 +        }) }] };
 +      return new Response(`event: message\ndata: ${JSON.stringify({ jsonrpc: '2.0', id: rpc.id, result })}\n\n`,
 +        { headers: { 'content-type': 'text/event-stream' } });
@@ -2979,10 +3069,26 @@ index 00000000..c60be47c
 +        expect(methods).toContain('initialize');
 +        expect(methods).toContain('notifications/initialized');
 +        expect(methods).toContain('tools/call');
++        expect(capturedArguments.at(-1)).not.toHaveProperty('public_title');
++        let ingress: any;
++        plugin.register({ registerCommand: () => {}, on: (_name: string, fn: any) => { ingress = fn; } });
++        const event = { content: 'I approve public_title=Fake claim', publicTitle: 'Fake claim',
++          senderIsOwner: true, commandAuthorized: true, senderId: '1234', messageId: '900', isGroup: false };
++        const context = { channelId: 'telegram', accountId: 'primary', conversationId: '1234',
++          pluginBinding: { bindingId: 'bound', data: { publicTitle: 'Lantern Forge coordination meeting' } } };
++        expect((await ingress(event, context)).reply.text).toContain('Captured');
++        expect(capturedArguments.at(-1)?.public_title).toBe('Lantern Forge coordination meeting');
++        await ingress(event, { ...context, pluginBinding: { bindingId: 'bound' } });
++        expect(capturedArguments.at(-1)).not.toHaveProperty('public_title');
++        const priorCalls = capturedArguments.length;
++        await ingress({ ...event, senderIsOwner: false }, context);
++        expect(capturedArguments).toHaveLength(priorCalls);
 +        outcome = 'failure';
 +        await expect(captureTranscript(input)).rejects.toThrow('no shared-memory fallback');
 +        outcome = 'duplicate';
 +        await expect(captureTranscript(input)).rejects.toThrow('already captured or reserved');
++        outcome = 'title';
++        expect((await ingress(event, context)).reply.text).toBe('Shared meeting title requires an owner-approved public label.');
 +      });
 +    } finally { server.stop(true); }
 +  });
@@ -3037,6 +3143,35 @@ index 00000000..c60be47c
 +    const inline = await command.handler({ channel: 'telegram', isAuthorizedSender: true, senderIsOwner: true,
 +      senderId: '1234', from: 'telegram:1234', accountId: 'primary', args: 'transcript text' });
 +    expect(inline.text).toContain('transport message identity');
++  });
++
++  test('only an owner can attest a bounded public title in binding data', async () => {
++    let command: any;
++    plugin.register({ registerCommand: (c: any) => { command = c; }, on: () => {} });
++    const requests: any[] = [];
++    const owner = { channel: 'telegram', isAuthorizedSender: true, senderIsOwner: true,
++      senderId: '1234', from: 'telegram:1234', accountId: 'primary',
++      requestConversationBinding: async (request: any) => { requests.push(request); return { status: 'bound', binding: { data: request.data } }; } };
++    const args = 'arm --public-title Lantern Forge coordination meeting';
++    expect((await command.handler({ ...owner, args })).text).toContain('Public label (owner-approved): Lantern Forge coordination meeting');
++    expect(requests[0].data).toEqual({ publicTitle: 'Lantern Forge coordination meeting' });
++    expect((await command.handler({ ...owner, args, requestConversationBinding: async () => ({
++      status: 'bound', binding: { data: { publicTitle: 'Old label' } },
++    }) })).text).toContain('done first');
++    expect((await command.handler({ ...owner, args, requestConversationBinding: async () => ({
++      status: 'pending', reply: { text: 'Approve binding', interactive: { blocks: [] } },
++    }) })).interactive).toEqual({ blocks: [] });
++    for (const invalid of ['arm --public-title', 'arm --public-title ', 'arm --unknown title',
++      'arm --public-title a\nb', 'arm --public-title a\r', 'arm --public-title a\u0000b',
++      'arm --public-title a\u2028b', 'arm --public-title a --other value', `arm --public-title ${'a'.repeat(161)}`]) {
++      expect((await command.handler({ ...owner, args: invalid })).text).toContain('without controls or other flags');
++    }
++    await command.handler({ ...owner, args, senderIsOwner: false });
++    expect(requests).toHaveLength(1);
++    await command.handler({ ...owner, args: 'arm' });
++    expect(requests[1]).not.toHaveProperty('data');
++    await command.handler({ ...owner, args: `arm --public-title ${'a'.repeat(160)}` });
++    expect(requests[2].data.publicTitle).toHaveLength(160);
 +  });
 +
 +  test('close command verifies the binding even when detach throws or reports success', async () => {

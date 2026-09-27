@@ -43,12 +43,14 @@ Remove the Telegram model's ability to call generic writes (`remember`, `put_pag
 
 The owner flow is:
 
-1. Send `/capture_meeting arm` in the allowlisted DM, approve any native binding request, and confirm the bound receipt.
+1. Send `/capture_meeting arm` in the allowlisted DM, approve any native binding request, and confirm the bound receipt. For a non-sensitive title that shared readers should be able to search, use `/capture_meeting arm --public-title <exact meeting title>` instead. That owner command explicitly authorizes only the title for shared lookup; transcript text cannot grant this approval. Close an existing binding before changing its title approval.
 2. Send one pasted transcript message or one UTF-8 `.txt` document of at most 20,000 bytes.
 3. Wait for a committed receipt or explicit failure; an ordinary agent reply is not evidence of capture.
 4. Send `/capture_meeting done`, then verify ordinary chat resumes.
 
 Inline `/capture_meeting <transcript>` is refused because that native command context lacks a transport message ID. Staged documents must be a single regular, non-symlink `text/plain` file within the configured inbox, with valid UTF-8. PDF, voice, image, multiple attachments, and oversized inputs are unsupported. Duplicate/reserved source identities are refused rather than silently overwritten; never change identities merely to bypass duplicate protection.
+
+An explicitly approved public title must be a bounded single line matching the transcript's marked first-line title. It is attached only to facts independently classified as shared, and its owner attestation is recorded with capture provenance. If a named transcript has shared facts but its title lacks either confident classifier approval or explicit owner approval, capture refuses before writing. Follow the actionable response rather than repeatedly submitting the same file to obtain a different classifier verdict.
 
 Both native OpenClaw **2026.9.6** compatibility patches are required, in numeric order, followed by a gateway restart. They fix Telegram runtime ownership during arm/detach and persist binding changes before changing in-memory state. Test arm, done, and ordinary chat; native binding state is under `telegram.thread-bindings`, not the generic conversation-binding table.
 
